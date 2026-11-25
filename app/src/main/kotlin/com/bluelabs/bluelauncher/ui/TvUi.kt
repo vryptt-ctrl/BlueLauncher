@@ -9,6 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
+import android.widget.HorizontalScrollView
 import android.widget.TextView
 
 /** Shared drawable builders and focus behavior; palettes are read lazily so theme switches repaint. */
@@ -51,6 +53,7 @@ internal object TvUi {
         radiusDp: Float,
         pill: Boolean = false,
         selected: (() -> Boolean)? = null,
+        onFocus: ((Boolean) -> Unit)? = null,
     ) {
         fun update(focused: Boolean) {
             val palette = paletteProvider()
@@ -81,13 +84,42 @@ internal object TvUi {
             update(focused)
             focusedView.animate().cancel()
             focusedView.animate()
-                .scaleX(if (focused) (if (pill) 1.04f else 1.06f) else 1f)
-                .scaleY(if (focused) (if (pill) 1.04f else 1.06f) else 1f)
+                // Overshoot on press-in for a springy TV feel; decelerate on release.
+                .scaleX(if (focused) (if (pill) 1.05f else 1.07f) else 1f)
+                .scaleY(if (focused) (if (pill) 1.05f else 1.07f) else 1f)
                 .translationZ(if (focused) dp(focusedView, 6f).toFloat() else 0f)
-                .setDuration(if (focused) 130L else 100L)
-                .setInterpolator(interpolator)
+                .setDuration(if (focused) 160L else 120L)
+                .setInterpolator(if (focused) focusInterpolator else interpolator)
                 .start()
+            onFocus?.invoke(focused)
         }
+    }
+
+    /** Slight overshoot used when a view takes focus. */
+    val focusInterpolator = OvershootInterpolator(1.55f)
+
+    /** Springy entrance for grid/strip children: fade in from the leading edge, staggered by index. */
+    fun staggerIn(view: View, index: Int) {
+        val delay = (index * 22L).coerceAtMost(220L)
+        view.alpha = 0f
+        view.translationX = dp(view, 26f).toFloat()
+        view.animate().cancel()
+        view.animate()
+            .alpha(1f)
+            .translationX(0f)
+            .setStartDelay(delay)
+            .setDuration(230L)
+            .setInterpolator(interpolator)
+            .start()
+    }
+
+    /** Center the focused card inside its horizontal strip with a smooth scroll. */
+    fun centerCardInStrip(card: View) {
+        val strip = card.parent as? ViewGroup ?: return
+        val scroll = strip.parent as? HorizontalScrollView ?: return
+        val target = card.left + card.width / 2 - scroll.width / 2
+        val clamped = target.coerceIn(0, (strip.width - scroll.width).coerceAtLeast(0))
+        if (scroll.scrollX != clamped) scroll.smoothScrollTo(clamped, 0)
     }
 
     fun roundIcon(view: View, radiusDp: Float = 14f) {

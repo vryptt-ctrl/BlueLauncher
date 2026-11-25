@@ -133,8 +133,11 @@ class LauncherViews(
 
     /** Hero play button resumes the most recently opened app, Google-TV style. */
     fun setResumeApp(app: LauncherApp?) {
+        val hadResume = resumeApp != null
         resumeApp = app
         heroBadge.contentDescription = app?.let { context.getString(R.string.hero_resume, it.label) }
+        if (app != null && !hadResume && heroBadge.isAttachedToWindow) startHeroPulse()
+        if (app == null) heroBadge.animate().cancel()
     }
 
     fun updateClock() {
@@ -292,13 +295,34 @@ class LauncherViews(
             setLayout((context.resources.displayMetrics.widthPixels * 0.56f).toInt().coerceAtMost(dp(560)), ViewGroup.LayoutParams.WRAP_CONTENT)
             setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
         }
+        // Panel scales up from 92% while the scrim fades in; symmetric fade-out on dismiss.
+        panel.alpha = 0f
+        panel.scaleX = 0.92f
+        panel.scaleY = 0.92f
+        panel.pivotY = dp(24).toFloat()
+        dialog.setOnShowListener {
+            panel.animate().cancel()
+            panel.animate()
+                .alpha(1f).scaleX(1f).scaleY(1f)
+                .setDuration(190L)
+                .setInterpolator(TvUi.focusInterpolator)
+                .start()
+        }
         dialog.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
                 dialog.dismiss(); true
             } else false
         }
         dialog.show()
-        cancelButton.setOnClickListener { dismissAction?.invoke(dialog) }
+        cancelButton.setOnClickListener {
+            panel.animate().cancel()
+            panel.animate()
+                .alpha(0f).scaleX(0.94f).scaleY(0.94f)
+                .setDuration(130L)
+                .setInterpolator(TvUi.interpolator)
+                .withEndAction { dismissAction?.invoke(dialog) }
+                .start()
+        }
         cancelButton.requestFocus()
         return dialog
     }
@@ -526,7 +550,9 @@ class LauncherViews(
             v.animate().cancel()
             v.animate().scaleX(if (focused) 1.12f else 1f).scaleY(if (focused) 1.12f else 1f)
                 .translationZ(if (focused) dp(8f).toFloat() else 0f)
-                .setDuration(if (focused) 130L else 100L).setInterpolator(TvUi.interpolator).start()
+                .setDuration(if (focused) 160L else 120L)
+                .setInterpolator(if (focused) TvUi.focusInterpolator else TvUi.interpolator)
+                .start()
         }
         heroBadge.setOnClickListener {
             val target = resumeApp
@@ -545,6 +571,28 @@ class LauncherViews(
         content.addView(sectionHeading(title), TvUi.params(-1, dp(26), bottom = dp(3)))
         scroll.addView(strip)
         content.addView(scroll, TvUi.params(-1, dp(84), bottom = dp(6)))
+    }
+
+    /** Gentle breathing pulse on the resume button while it is not focused. */
+    private fun startHeroPulse() {
+        heroBadge.animate().cancel()
+        heroBadge.animate()
+            .scaleX(1.06f).scaleY(1.06f)
+            .setDuration(1100L)
+            .setInterpolator(TvUi.interpolator)
+            .withEndAction {
+                if (!heroBadge.isFocused && heroBadge.isAttachedToWindow) {
+                    heroBadge.animate()
+                        .scaleX(1f).scaleY(1f)
+                        .setDuration(1100L)
+                        .setInterpolator(TvUi.interpolator)
+                        .withEndAction {
+                            if (heroBadge.isAttachedToWindow && resumeApp != null) startHeroPulse()
+                        }
+                        .start()
+                }
+            }
+            .start()
     }
 
     private fun renderContent() {
@@ -626,7 +674,10 @@ class LauncherViews(
         val favoriteOrder = preferences.favoritesInOrder(apps.map { it.packageName })
         items.forEachIndexed { index, app ->
             val (width, height) = cardDimensions(compact)
-            strip.addView(appCard(app, compact, index, favoriteOrder), TvUi.params(width, height, right = dp(10)))
+            val card = appCard(app, compact, index, favoriteOrder)
+            strip.addView(card, TvUi.params(width, height, right = dp(10)))
+            // Items glide in from the leading edge with a per-index delay.
+            TvUi.staggerIn(card, index)
         }
     }
 
@@ -642,7 +693,9 @@ class LauncherViews(
     /** Poster-style card: icon tile on top with the label beneath; compact rows stay side-by-side. */
     private fun appCard(app: LauncherApp, compact: Boolean, index: Int, favoriteOrder: List<String>): View {
         val card = FrameLayout(context).apply {
-            TvUi.setSelectableBackground(this, { palette }, 18f)
+            TvUi.setSelectableBackground(this, { palette }, 18f, onFocus = { focused ->
+                if (focused) TvUi.centerCardInStrip(this)
+            })
             isLongClickable = true
             contentDescription = "${app.label}, ${if (preferences.isFavorite(app.packageName)) context.getString(R.string.unfavorite_app) else context.getString(R.string.favorite_app)}"
             setOnClickListener { callbacks.launch(app) }
