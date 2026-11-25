@@ -14,7 +14,7 @@ A deliberately small, native Android TV home launcher: Kotlin owns the Android l
 ## Highlights
 
 - **Fast**: programmatic platform Views, no Compose/RecyclerView/Leanback; internal UI ready in ~160 ms on modest hardware.
-- **Light**: ~3.9 MB debug APK with three ABIs; release builds are R8-shrunk below 1 MB (unsigned).
+- **Light**: ~3.9 MB debug APK with three ABIs; release builds are R8-shrunk below 1.2 MB.
 - **Native core**: Rust ranking/search via JNI, with an automatic Kotlin fallback.
 - **TV-first**: full D-pad navigation, focus lift + glow, spotlight pills, poster-style app cards.
 - **Personal**: ordered favorites, bounded recents with one-click resume, category filters, three dark themes, custom image wallpaper, clock/date options.
@@ -62,7 +62,7 @@ export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
 ./gradlew assembleDebug testDebugUnitTest lintDebug
 ```
 
-The debug APK is `app/build/outputs/apk/debug/app-debug.apk` (about 3.9 MB with all three ABIs). `assembleRelease` runs R8 and resource shrinking and produces an unsigned APK; add a private signing config before distributing it. **The project does not contain a production signing key.**
+The debug APK is `app/build/outputs/apk/debug/app-debug.apk` (about 3.9 MB with all three ABIs). `assembleRelease` runs R8 and resource shrinking and produces an unsigned APK; add a private signing config before distributing it. Published release APKs on the [releases page](https://github.com/vryptt-ctrl/BlueLauncher/releases) are signed and zipaligned by the maintainer — the signing key itself is not in the repository.
 
 Unit tests cover the pure preference and category logic (`LauncherPreferences.mergeOrder`, `moveWithin`, recent-history bounding and category filters) and run on the JVM without Robolectric. Run native scorer tests with:
 

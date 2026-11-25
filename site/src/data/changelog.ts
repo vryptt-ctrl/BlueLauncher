@@ -17,9 +17,35 @@ export type Release = {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.1.0',
+    version: '1.1.1',
     date: '2026-11-25',
     latest: true,
+    summary:
+      'Focus and layout fixes: rows stay inside their viewport, the focused card keeps its full accent stroke at both ends, and D-pad focus no longer jumps between rows.',
+    groups: [
+      {
+        kind: 'Added',
+        items: [
+          'Marketing and documentation site under site/, published to GitHub Pages.',
+          'About panel now shows the version from the build instead of a hard-coded string.',
+        ],
+      },
+      {
+        kind: 'Fixed',
+        items: [
+          'App cards no longer paint across the screen gutter while a row is scrolled. Each horizontal strip sits in its own clipping container, so scrolled-out cards are cut at the row edge while the hero, search pill and category chips still draw their focus-scale overflow.',
+          'The focused card keeps its full accent stroke at both ends of every strip: strips have 10 dp of horizontal headroom, the scroll views are pulled outwards by the same amount, and the fading-edge length was shortened to match.',
+          'The “Large app cards” setting no longer clips the bottom stroke of the focused card; row heights are derived from the card size.',
+          'Focus no longer jumps between rows when a strip is rebuilt (favorite toggled, order changed).',
+          'Left/right presses at either end of a strip stay inside that row, and the first Down press lands on the main apps strip.',
+          'A focused card is kept fully on screen vertically, including its focus-scale overflow.',
+        ],
+      },
+    ],
+  },
+  {
+    version: '1.1.0',
+    date: '2026-11-25',
     summary:
       'Official Focus Grid brand identity: adaptive icon with themed support, PNG mipmaps for older devices, a dedicated TV banner and committed brand sources.',
     groups: [

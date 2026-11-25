@@ -49,6 +49,10 @@ keystore/
 # Screenshots & test artifacts
 app/build/screenshots/
 
+# Local release artifacts (uploaded to GitHub Releases, not committed)
+BlueLauncher-v*-release.apk
+BlueLauncher-v*-release.apk.idsig
+
 # Astro site (site/) — dependencies, build output and generated types
 site/node_modules/
 site/dist/

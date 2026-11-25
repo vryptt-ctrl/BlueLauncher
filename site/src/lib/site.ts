@@ -9,7 +9,7 @@ export const SITE = {
   tagline: 'A small, offline home screen for Android TV.',
   description:
     'A deliberately small, native Android TV home launcher. Kotlin owns the lifecycle, package discovery, D-pad UI and preferences; a compact Rust/JNI module ranks and searches apps. No network calls, ads, analytics or services.',
-  version: '1.1.0',
+  version: '1.1.1',
   versionDate: '2026-11-25',
   releaseDate: '2026-11-25',
   packageId: 'com.bluelabs.bluelauncher',
