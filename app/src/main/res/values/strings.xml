@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name">BlueLauncher</string>
     <string name="brand">BLUE</string>
-    <string name="search_action">⌕   Search</string>
-    <string name="settings_action">⚙   Settings</string>
+    <string name="search_action">   Search</string>
+    <string name="settings_action">   Settings</string>
     <string name="hero_kicker">YOUR ENTERTAINMENT, AT HOME</string>
     <string name="hero_title">Everything you\nlove, one click away.</string>
     <plurals name="hero_ready">
@@ -17,12 +17,12 @@
     <string name="no_results">No matches for “%1$s”</string>
     <string name="apps_heading">Your apps · %1$d</string>
     <string name="results_heading">Results · %1$d</string>
-    <string name="filter_all">▦   All apps</string>
-    <string name="filter_favorites">✦   Favorites</string>
-    <string name="filter_media">◉   Media</string>
-    <string name="filter_games">▣   Games</string>
-    <string name="favorites_section">Pinned favorites</string>
-    <string name="recent_section">Recently opened</string>
+    <string name="filter_all">   All apps</string>
+    <string name="filter_favorites">   Favorites</string>
+    <string name="filter_media">   Media</string>
+    <string name="filter_games">   Games</string>
+    <string name="favorites_section">  Pinned favorites</string>
+    <string name="recent_section">  Recently opened</string>
     <string name="empty_apps">No TV apps found</string>
     <string name="empty_apps_hint">Installed apps with a TV or launcher icon appear here.</string>
     <string name="favorite_app">Pin to favorites</string>

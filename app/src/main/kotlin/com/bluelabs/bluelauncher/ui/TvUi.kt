@@ -1,5 +1,6 @@
 package com.bluelabs.bluelauncher.ui
 
+import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
@@ -121,5 +122,29 @@ internal object TvUi {
         val green = (first shr 8 and 0xFF) * inverse + (second shr 8 and 0xFF) * fraction
         val blue = (first and 0xFF) * inverse + (second and 0xFF) * fraction
         return (0xFF shl 24) or (red.toInt() shl 16) or (green.toInt() shl 8) or blue.toInt()
+    }
+
+    /** Brand typeface: bundled Inter (weights 300/400/700) resolved once per process. */
+    private var cachedInter: android.graphics.Typeface? = null
+
+    fun inter(context: Context): android.graphics.Typeface {
+        cachedInter?.let { return it }
+        val loaded = runCatching { android.graphics.Typeface.createFromAsset(context.assets, "fonts/inter_400.ttf") }.getOrNull()
+            ?: android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.NORMAL)
+        cachedInter = loaded
+        return loaded
+    }
+
+    fun interLight(context: Context): android.graphics.Typeface =
+        android.graphics.Typeface.create(inter(context), android.graphics.Typeface.create("sans-serif-light", android.graphics.Typeface.NORMAL).style)
+
+    /** Material Symbols Rounded icon font (subset bundled as assets/fonts/blue_icons.ttf). */
+    private var cachedIcons: android.graphics.Typeface? = null
+
+    fun icons(context: Context): android.graphics.Typeface? {
+        if (cachedIcons == null) {
+            cachedIcons = runCatching { android.graphics.Typeface.createFromAsset(context.assets, "fonts/blue_icons.ttf") }.getOrNull()
+        }
+        return cachedIcons
     }
 }

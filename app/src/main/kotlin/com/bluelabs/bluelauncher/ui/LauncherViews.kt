@@ -91,6 +91,20 @@ class LauncherViews(
         Thread(task, "BlueLauncher-wallpaper").apply { priority = Thread.NORM_PRIORITY - 1 }
     }
 
+    companion object {
+        /** Material Symbols Rounded codepoints (subset bundled as res/font/blue_icons.ttf). */
+        const val GLYPH_SEARCH = ''
+        const val GLYPH_SETTINGS = ''
+        const val GLYPH_PLAY = ''
+        const val GLYPH_STAR = ''
+        const val GLYPH_FILTER_ALL = ''
+        const val GLYPH_FILTER_FAVORITES = ''
+        const val GLYPH_FILTER_MEDIA = ''
+        const val GLYPH_FILTER_GAMES = ''
+        const val GLYPH_SECTION_FAVORITES = ''
+        const val GLYPH_SECTION_RECENT = ''
+    }
+
     init {
         root.isFocusableInTouchMode = true
         root.background = scrimBackground()
@@ -250,6 +264,7 @@ class LauncherViews(
             setPadding(dp(24), dp(18), dp(24), dp(18))
         }
         panel.addView(TextView(context).apply {
+            typeface = TvUi.inter(context)
             text = title; textSize = 19f; setTypeface(typeface, android.graphics.Typeface.BOLD)
             setTextColor(palette.text)
         })
@@ -402,6 +417,7 @@ class LauncherViews(
 
         val top = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
         brand.apply {
+            typeface = TvUi.inter(context)
             text = context.getString(R.string.brand); textSize = 14f; letterSpacing = 0.26f
             setTypeface(typeface, android.graphics.Typeface.BOLD); setTextColor(palette.accentBright)
         }
@@ -445,6 +461,7 @@ class LauncherViews(
         filters.addView(sectionHeading(appsHeading), LinearLayout.LayoutParams(0, dp(39), 1f))
         listOf(allAppsChip, favoritesChip, mediaChip, gamesChip).forEachIndexed { index, chip ->
             chip.apply {
+                typeface = TvUi.icons(context)
                 textSize = 11.5f; gravity = Gravity.CENTER; setPadding(dp(12), 0, dp(12), 0)
                 TvUi.setSelectableBackground(this, { palette }, 21f, pill = true)
                 setOnClickListener { categoryIndex = index; callbacks.selectCategory(AppCategory.entries[index]); renderContent() }
@@ -482,6 +499,7 @@ class LauncherViews(
         }, TvUi.params(-1, -2, bottom = dp(6)))
         info.addView(heroTitle.apply {
             text = context.getString(R.string.hero_title); textSize = 27f; letterSpacing = -0.02f
+            typeface = TvUi.inter(context)
             setTypeface(typeface, android.graphics.Typeface.BOLD); setTextColor(palette.text); setLineSpacing(0f, 1.05f)
         }, TvUi.params(-1, -2, bottom = dp(5)))
         heroHint.apply { textSize = 12.5f; setTextColor(palette.muted) }
@@ -496,7 +514,10 @@ class LauncherViews(
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
                 intArrayOf(palette.accentBright.alpha(30), 0x00000000)).apply { shape = GradientDrawable.OVAL }
         }, FrameLayout.LayoutParams(orbWidth / 2, orbWidth / 2, Gravity.END or Gravity.TOP).apply { marginEnd = dp(24); topMargin = dp(8) })
-        heroBadge.apply { text = "▶"; textSize = 30f; gravity = Gravity.CENTER; setTextColor(palette.onAccent) }
+        heroBadge.apply {
+            typeface = TvUi.icons(context)
+            text = GLYPH_PLAY.toString(); textSize = 30f; gravity = Gravity.CENTER; setTextColor(palette.onAccent)
+        }
         heroBadge.isFocusable = true
         heroBadge.isClickable = true
         paintHeroBadge(heroBadge.isFocused)
@@ -711,27 +732,31 @@ class LauncherViews(
     }
 
     private fun favoriteDot() = TextView(context).apply {
-        text = "✦"; textSize = 10f; gravity = Gravity.CENTER; setTextColor(palette.onAccent)
+        typeface = TvUi.icons(context)
+        text = GLYPH_STAR.toString(); textSize = 12f; gravity = Gravity.CENTER; setTextColor(palette.onAccent)
         background = GradientDrawable().apply { setColor(palette.accent); shape = GradientDrawable.OVAL }
     }
 
     private fun sectionHeading(view: TextView) = view.apply {
+        typeface = TvUi.icons(context) ?: TvUi.inter(context)
         textSize = 10.5f; letterSpacing = 0.12f; setTypeface(typeface, android.graphics.Typeface.BOLD)
         setTextColor(palette.muted); gravity = Gravity.CENTER_VERTICAL
     }
 
     private fun clockText(view: TextView, size: Float) = view.apply {
         textSize = size; setTextColor(palette.text); gravity = Gravity.CENTER_VERTICAL
-        typeface = android.graphics.Typeface.create("sans-serif-light", android.graphics.Typeface.NORMAL)
+        typeface = TvUi.interLight(context)
     }
 
     private fun configureActionChip(view: TextView, label: String, action: () -> Unit) = view.apply {
+        typeface = TvUi.icons(context) ?: TvUi.inter(context)
         text = label; textSize = 11.5f; gravity = Gravity.CENTER; setPadding(dp(14), 0, dp(14), 0)
         setTextColor(palette.text); TvUi.setSelectableBackground(this, { palette }, 22f, pill = true)
         setOnClickListener { action() }
     }
 
     private fun settingsLabel(textValue: String, color: Int = palette.text, size: Float = 14f) = TextView(context).apply {
+        typeface = TvUi.inter(context)
         text = textValue; textSize = size; letterSpacing = 0.08f; setTextColor(color)
         gravity = Gravity.CENTER_VERTICAL; setTypeface(typeface, android.graphics.Typeface.BOLD)
     }
