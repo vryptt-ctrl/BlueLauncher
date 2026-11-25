@@ -1,0 +1,142 @@
+---
+import Base from '@/layouts/Base.astro';
+import Gallery from '@/components/Gallery.astro';
+import SectionHead from '@/components/SectionHead.astro';
+import { SHOTS } from '@/data/shots';
+import { SITE } from '@/lib/site';
+import { url } from '@/lib/url';
+---
+
+<Base
+  title="Screenshots"
+  description="Every BlueLauncher screen at 1920×1080: home, search, favorites and settings."
+>
+  <div class="page-intro">
+    <p class="kicker">Screenshots</p>
+    <h1 class="display page-intro__title">The whole launcher, four screens.</h1>
+    <p class="lede">
+      Captured at 1920×1080 on a TV-sized display. There is no hidden fifth screen — settings is a
+      dialog over the home screen.
+    </p>
+  </div>
+
+  <section class="section section--flush" aria-labelledby="gallery-title">
+    <h2 class="visually-hidden" id="gallery-title">Screenshot gallery</h2>
+    <Gallery />
+  </section>
+
+  <section class="section" aria-labelledby="details-title">
+    <SectionHead kicker="Detail" title="What each screen is actually doing." id="details-title" />
+    <div class="details">
+      {
+        SHOTS.map((shot) => (
+          <article class="detail">
+            <h3 class="detail__title">{shot.title}</h3>
+            <p class="detail__text">{shot.caption}</p>
+            <p class="detail__alt">
+              <span class="detail__alt-label">Alt text</span>
+              {shot.alt}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="notice">
+      <h2 class="h3">Screenshots reflect version {SITE.version}</h2>
+      <p class="muted">
+        These captures were retaken against the branded 1.1.0 build. If the layout changes, the
+        images are regenerated rather than patched — the gallery mirrors what the APK actually
+        ships.
+      </p>
+      <p>
+        <a href={url('/changelog/')}>See what changed in 1.1.0</a>
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-intro {
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 4.5rem) var(--gap-xl);
+    max-width: 64ch;
+  }
+
+  .page-intro__title {
+    margin-top: var(--gap);
+    font-size: clamp(2rem, 1.3rem + 3vw, 3.25rem);
+  }
+
+  .page-intro :global(.lede) {
+    margin-top: var(--gap-md);
+  }
+
+  .section--flush {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .details {
+    display: grid;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+
+  @media (min-width: 800px) {
+    .details {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .detail {
+    padding: var(--gap-md);
+    background: rgb(11 17 29 / 92%);
+  }
+
+  .detail__title {
+    font-size: var(--step-2);
+    letter-spacing: -0.015em;
+  }
+
+  .detail__text {
+    margin-top: 0.5rem;
+    color: var(--text-dim);
+    font-size: var(--step-0);
+  }
+
+  .detail__alt {
+    margin-top: var(--gap);
+    padding-top: var(--gap-sm);
+    border-top: 1px dashed var(--border-strong);
+    font-size: var(--step--1);
+    color: var(--text-faint);
+  }
+
+  .detail__alt-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-bright);
+  }
+
+  .notice {
+    max-width: 60ch;
+    padding: var(--gap-md);
+    border-left: 2px solid var(--border-accent);
+    background: rgb(47 125 255 / 6%);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+  }
+
+  .notice p {
+    margin-top: var(--gap-sm);
+    font-size: var(--step-0);
+  }
+</style>

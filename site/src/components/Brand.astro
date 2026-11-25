@@ -1,0 +1,46 @@
+---
+import Mark from './Mark.astro';
+import { SITE } from '@/lib/site';
+import { url } from '@/lib/url';
+
+interface Props {
+  /** Renders an <a> to home unless false (used in the footer). */
+  link?: boolean;
+  size?: number;
+}
+
+const { link = true, size = 34 } = Astro.props;
+const Tag = link ? 'a' : 'div';
+---
+
+<Tag
+  {...link
+    ? { href: url('/'), 'aria-label': `${SITE.name} home`, class: 'brand' }
+    : { class: 'brand' }}
+>
+  <Mark size={size} />
+  <span class="brand__text">Blue<span class="brand__suffix">Launcher</span></span>
+</Tag>
+
+<style>
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.028em;
+    font-weight: 700;
+    font-size: 1.125rem;
+    white-space: nowrap;
+  }
+
+  .brand:hover {
+    color: var(--text);
+  }
+
+  .brand__suffix {
+    font-weight: 400;
+    color: var(--accent-bright);
+  }
+</style>

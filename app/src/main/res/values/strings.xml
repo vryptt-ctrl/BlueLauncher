@@ -43,7 +43,7 @@
     <string name="app_cards_large">Large app cards</string>
     <string name="reset_layout">Reset home layout</string>
     <string name="about_diagnostics">About and diagnostics</string>
-    <string name="about_title">BlueLauncher  1.0.0</string>
+    <string name="about_title">BlueLauncher  %1$s</string>
     <string name="about_message">A lightweight Android TV home screen.\n\n%1$s\n\nTip: Hold OK on an app for pin and reorder actions.</string>
     <string name="blue_nocturne">Blue nocturne</string>
     <string name="midnight_ink">Midnight ink</string>

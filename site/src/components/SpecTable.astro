@@ -1,0 +1,107 @@
+---
+interface Props {
+  head: string[];
+  rows: (string | { text: string; mono?: boolean })[][];
+  caption?: string;
+  /** Column alignment hints, e.g. ['start','start','end']. */
+  align?: ('start' | 'end')[];
+}
+
+const { head, rows, caption, align = [] } = Astro.props;
+---
+
+<div class="table-wrap">
+  <table>
+    {caption && <caption>{caption}</caption>}
+    <thead>
+      <tr>
+        {
+          head.map((cell, i) => (
+            <th scope="col" style={`text-align:${align[i] ?? 'start'}`}>
+              {cell}
+            </th>
+          ))
+        }
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((row) => (
+          <tr>
+            {row.map((cell, i) => {
+              const value = typeof cell === 'string' ? { text: cell, mono: false } : cell;
+              return (
+                <td style={`text-align:${align[i] ?? 'start'}`} class:list={{ mono: value.mono }}>
+                  {value.text}
+                </td>
+              );
+            })}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    /* Both are needed when this is a grid or flex item: the table's own
+       min-width would otherwise set the item's automatic minimum and push the
+       whole column past the viewport instead of scrolling inside the wrapper. */
+    min-width: 0;
+    max-width: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: rgb(17 26 42 / 55%);
+    scrollbar-width: thin;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    min-width: 480px;
+  }
+
+  caption {
+    caption-side: top;
+    padding: 0.9rem 1.1rem 0;
+    text-align: start;
+    color: var(--text-faint);
+    font-size: var(--step--1);
+  }
+
+  th {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.8rem 1.1rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:hover td {
+    background: rgb(124 225 255 / 4%);
+    color: var(--text);
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--accent-bright);
+  }
+</style>

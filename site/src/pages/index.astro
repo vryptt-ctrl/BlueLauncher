@@ -1,0 +1,364 @@
+---
+import Base from '@/layouts/Base.astro';
+import Button from '@/components/Button.astro';
+import Icon from '@/components/Icon.astro';
+import Gallery from '@/components/Gallery.astro';
+import TVFrame from '@/components/TVFrame.astro';
+import FeatureCard from '@/components/FeatureCard.astro';
+import SectionHead from '@/components/SectionHead.astro';
+import SpecTable from '@/components/SpecTable.astro';
+import { SITE } from '@/lib/site';
+import { url } from '@/lib/url';
+import { HIGHLIGHTS } from '@/data/features';
+import { SHOTS } from '@/data/shots';
+import { ABI_TABLE } from '@/data/content';
+
+const hero = SHOTS[0];
+const chips = [
+  { icon: 'tv' as const, text: `Android ${SITE.minSdk}+` },
+  { icon: 'cpu' as const, text: 'Kotlin + Rust' },
+  { icon: 'offline' as const, text: 'No network permission' },
+  { icon: 'github' as const, text: 'GPL-3.0' },
+];
+---
+
+<Base title={`${SITE.name} — ${SITE.tagline}`} bare>
+  <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__copy">
+      <p class="kicker">Android TV home launcher</p>
+      <h1 class="display hero__title" id="hero-title">
+        BlueLauncher<br />
+        <span class="gradient-text">for Android TV</span>
+      </h1>
+      <p class="hero__lede">
+        A small, native home screen for your TV. Kotlin draws the interface and handles the
+        Android side; a Rust module ranks and searches your apps on the device. Nothing phones
+        home.
+      </p>
+
+      <div class="hero__actions">
+        <Button href={SITE.releases} size="lg" external icon="download">Download APK</Button>
+        <Button href={SITE.repo} variant="secondary" size="lg" external icon="github">
+          View source
+        </Button>
+      </div>
+
+      <ul class="chips" aria-label="Key facts">
+        {
+          chips.map((chip) => (
+            <li class="chip">
+              <Icon name={chip.icon} size={15} />
+              {chip.text}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="hero__media">
+      <TVFrame shot={hero} priority sizes="(min-width: 1000px) 620px, 92vw" class="hero__tv" />
+    </div>
+  </section>
+
+  <!-- ── Highlights ───────────────────────────────────────────────────── -->
+  <section class="section" aria-labelledby="highlights-title">
+    <h2 class="visually-hidden" id="highlights-title">Highlights</h2>
+    <ul class="stats">
+      {
+        HIGHLIGHTS.map((item) => (
+          <li class="stat">
+            <span class="stat__icon">
+              <Icon name={item.icon as any} size={18} />
+            </span>
+            <span class="stat__value">{item.stat}</span>
+            <span class="stat__label">{item.label}</span>
+            <span class="stat__body">{item.body}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- ── Screenshots ──────────────────────────────────────────────────── -->
+  <section class="section" aria-labelledby="screens-title">
+    <SectionHead
+      kicker="Screenshots"
+      title="What it looks like"
+      lede="Captured at 1920×1080 on a TV-sized display."
+      id="screens-title"
+    />
+    <Gallery />
+    <p class="section__more">
+      <a href={url('/screenshots/')}>See every screen in detail <Icon name="arrow" size={16} /></a>
+    </p>
+  </section>
+
+  <!-- ── Feature preview ──────────────────────────────────────────────── -->
+  <section class="section" aria-labelledby="features-title">
+    <SectionHead
+      kicker="Features"
+      title="What it does"
+      lede="The parts of a launcher you actually use, without the rest."
+      id="features-title"
+    />
+    <div class="grid grid--3">
+      {
+        HIGHLIGHTS.map((item) => (
+          <FeatureCard
+            icon={item.icon as any}
+            title={item.title}
+            body={item.body}
+          />
+        ))
+      }
+      <FeatureCard
+        icon="palette"
+        title="Three dark themes"
+        body="Blue nocturne, Midnight ink and Deep ocean, plus a custom wallpaper imported straight from the system picker."
+      />
+      <FeatureCard
+        icon="pin"
+        title="Ordered favorites"
+        body="Hold OK to pin an app and nudge it into place. Your order survives reinstalls and uninstalls."
+      />
+      <FeatureCard
+        icon="shield"
+        title="No network permission"
+        body="The manifest declares no network permission, so there is nothing to phone home with. No ads, no analytics, no crash reporter."
+      />
+    </div>
+  </section>
+
+  <!-- ── Install teaser ───────────────────────────────────────────────── -->
+  <section class="section install" aria-labelledby="install-title">
+    <div class="install__panel">
+      <div class="install__copy">
+        <p class="kicker">Get it running</p>
+        <h2 class="h2" id="install-title">Install in three commands</h2>
+        <p class="muted install__text">
+          Release builds ship unsigned through GitHub Releases. If your device rejects unsigned
+          packages, install the debug APK or build it yourself.
+        </p>
+        <div class="cluster">
+          <Button href={url('/install/')} icon="download">Installation guide</Button>
+          <Button href={url('/build/')} variant="secondary" icon="build">Build from source</Button>
+        </div>
+      </div>
+
+      <div class="install__specs">
+        <SpecTable
+          head={['ABI', 'Rust target', 'Page size']}
+          rows={ABI_TABLE.map((row) => [row.abi, { text: row.target, mono: true }, row.pages])}
+        />
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* ── Hero ──────────────────────────────────────────────────────────── */
+  .hero {
+    display: grid;
+    gap: var(--gap-xl);
+    align-items: center;
+    padding-block: clamp(2.5rem, 1rem + 6vw, 5.5rem) var(--gap-2xl);
+  }
+
+  @media (min-width: 1000px) {
+    .hero {
+      grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+      gap: var(--gap-xl);
+    }
+  }
+
+  .hero__title {
+    margin-top: var(--gap);
+  }
+
+  .hero__lede {
+    margin-top: var(--gap-md);
+    max-width: 52ch;
+    font-size: var(--step-2);
+    font-weight: 300;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+    margin-top: var(--gap-lg);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    list-style: none;
+    padding: 0;
+    margin: var(--gap-md) 0 0;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.38rem 0.75rem;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--border);
+    background: rgb(17 26 42 / 65%);
+    font-size: var(--step--1);
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .chip :global(svg) {
+    color: var(--cyan);
+  }
+
+  .hero__media {
+    position: relative;
+  }
+
+  .hero__media::before {
+    /* Glow behind the TV frame, matching the launcher's accent glow. Kept
+       inside the media box so it never widens the document on narrow screens. */
+    content: '';
+    position: absolute;
+    inset: 8% 0 -12% 0;
+    background: radial-gradient(closest-side, rgb(47 125 255 / 28%), transparent 78%);
+    filter: blur(18px);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* ── Stats ─────────────────────────────────────────────────────────── */
+  .stats {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+
+  @media (min-width: 720px) {
+    .stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .stat {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    padding: var(--gap-md);
+    background: linear-gradient(180deg, rgb(28 39 63 / 45%), rgb(11 17 29 / 92%));
+  }
+
+  .stat__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    margin-bottom: 0.35rem;
+    border-radius: var(--r-sm);
+    color: var(--cyan);
+    background: rgb(124 225 255 / 8%);
+    border: 1px solid rgb(124 225 255 / 16%);
+  }
+
+  .stat__value {
+    font-size: var(--step-3);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  .stat__label {
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-bright);
+  }
+
+  .stat__body {
+    margin-top: 0.35rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  /* ── Grid ──────────────────────────────────────────────────────────── */
+  .grid {
+    display: grid;
+    gap: var(--gap);
+  }
+
+  @media (min-width: 640px) {
+    .grid--3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .grid--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .section__more {
+    margin-top: var(--gap-md);
+    font-size: var(--step-0);
+  }
+
+  .section__more a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .section__more a:hover {
+    gap: 0.6rem;
+  }
+
+  /* ── Install panel ─────────────────────────────────────────────────── */
+  .install__panel {
+    display: grid;
+    /* Single column, but an explicit minmax(0, 1fr) track so the embedded spec
+       table can scroll instead of widening the panel on narrow screens. */
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--gap-lg);
+    padding: clamp(1.5rem, 3vw, 2.75rem);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-xl);
+    background:
+      radial-gradient(120% 130% at 0% 0%, rgb(47 125 255 / 14%), transparent 60%),
+      linear-gradient(180deg, rgb(28 39 63 / 60%), rgb(11 17 29 / 92%));
+    box-shadow: var(--shadow-card);
+  }
+
+  @media (min-width: 900px) {
+    .install__panel {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: center;
+      gap: var(--gap-xl);
+    }
+  }
+
+  .install__text {
+    margin-block: var(--gap) var(--gap-md);
+    max-width: 46ch;
+    font-size: var(--step-0);
+  }
+</style>

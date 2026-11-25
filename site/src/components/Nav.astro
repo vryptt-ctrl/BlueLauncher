@@ -1,0 +1,300 @@
+---
+import Brand from './Brand.astro';
+import Icon from './Icon.astro';
+import Button from './Button.astro';
+import { NAV, SITE } from '@/lib/site';
+import { url, isActive } from '@/lib/url';
+
+const path = Astro.url.pathname;
+const suffix = import.meta.env.BASE_URL.replace(/\/+$/, '');
+const current = path.startsWith(suffix) ? path.slice(suffix.length) || '/' : path;
+---
+
+<header class="nav" data-nav>
+  <div class="nav__inner shell">
+    <Brand size={30} />
+
+    <nav class="nav__links" aria-label="Main">
+      <ul>
+        {
+          NAV.map((item) => (
+            <li>
+              <a
+                href={url(item.href)}
+                aria-current={isActive(current, item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="nav__actions">
+      <span class="nav__cta">
+        <Button href={SITE.releases} variant="primary" external icon="download">Download</Button>
+      </span>
+      <a
+        class="nav__github"
+        href={SITE.repo}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${SITE.name} on GitHub (opens in a new tab)`}
+      >
+        <Icon name="github" size={20} />
+      </a>
+      <button
+        class="nav__toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="nav-sheet"
+        data-nav-toggle
+      >
+        <Icon name="menu" size={22} class="nav__toggle-open" />
+        <Icon name="close" size={22} class="nav__toggle-close" />
+        <span class="visually-hidden">Menu</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="nav__sheet" id="nav-sheet" hidden data-nav-sheet>
+    <nav aria-label="Mobile">
+      <ul>
+        {
+          NAV.map((item) => (
+            <li>
+              <a
+                href={url(item.href)}
+                aria-current={isActive(current, item.href) ? 'page' : undefined}
+              >
+                {item.label}
+                <Icon name="chevron" size={16} />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="nav__sheet-actions">
+      <Button href={SITE.releases} variant="primary" external icon="download" block
+        >Download APK</Button
+      >
+      <Button href={SITE.repo} variant="secondary" external icon="github" block>View source</Button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(7 11 20 / 82%);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
+    height: var(--nav-h);
+  }
+
+  .nav__links {
+    display: none;
+  }
+
+  @media (min-width: 900px) {
+    .nav__links {
+      display: block;
+      margin-inline: auto;
+    }
+  }
+
+  .nav__links ul {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav__links a {
+    display: inline-block;
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--r-pill);
+    font-size: 0.9375rem;
+    font-weight: 400;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition:
+      color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease);
+  }
+
+  .nav__links a:hover {
+    color: var(--text);
+    background: rgb(124 225 255 / 7%);
+  }
+
+  .nav__links a[aria-current='page'] {
+    color: var(--text);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+  }
+
+  .nav__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+  }
+
+  @media (min-width: 900px) {
+    .nav__actions {
+      margin-left: 0;
+    }
+  }
+
+  .nav__cta {
+    display: none;
+  }
+
+  @media (min-width: 560px) {
+    .nav__cta {
+      display: inline-flex;
+    }
+
+    /* The pill is a Button, rendered with its own scope, so the size override
+       has to reach through :global rather than rely on the class landing twice. */
+    .nav__cta :global(.btn) {
+      padding: 0.58rem 1.05rem;
+      font-size: 0.9375rem;
+    }
+  }
+
+  .nav__github {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-pill);
+    color: var(--text-dim);
+    transition:
+      color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease);
+  }
+
+  .nav__github:hover {
+    color: var(--text);
+    background: rgb(124 225 255 / 8%);
+  }
+
+  .nav__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-pill);
+    color: var(--text);
+  }
+
+  @media (min-width: 900px) {
+    .nav__toggle {
+      display: none;
+    }
+  }
+
+  .nav__toggle-close {
+    display: none;
+  }
+
+  .nav[data-open='true'] .nav__toggle-open {
+    display: none;
+  }
+
+  .nav[data-open='true'] .nav__toggle-close {
+    display: block;
+  }
+
+  .nav__sheet {
+    border-top: 1px solid var(--border);
+    background: var(--bg-deep);
+    padding: var(--gap) var(--pad-inline) var(--gap-lg);
+  }
+
+  .nav__sheet[hidden] {
+    display: none;
+  }
+
+  .nav__sheet ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--gap-md);
+  }
+
+  .nav__sheet a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: var(--step-1);
+    text-decoration: none;
+  }
+
+  .nav__sheet a[aria-current='page'] {
+    color: var(--cyan);
+  }
+
+  .nav__sheet-actions {
+    display: grid;
+    gap: var(--gap-sm);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .nav {
+      background: var(--bg);
+      backdrop-filter: none;
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-nav]');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  const sheet = document.querySelector<HTMLElement>('[data-nav-sheet]');
+
+  if (header && toggle && sheet) {
+    const setOpen = (open: boolean) => {
+      header.dataset.open = String(open);
+      toggle.setAttribute('aria-expanded', String(open));
+      sheet.hidden = !open;
+    };
+
+    toggle.addEventListener('click', () => setOpen(header.dataset.open !== 'true'));
+
+    // Close after in-page navigation and on Escape, so keyboard users are never trapped.
+    sheet.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && header.dataset.open === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+
+    // The sheet is desktop-irrelevant; reset it if the viewport grows mid-session.
+    const wide = window.matchMedia('(min-width: 900px)');
+    wide.addEventListener('change', (event) => {
+      if (event.matches) setOpen(false);
+    });
+  }
+</script>

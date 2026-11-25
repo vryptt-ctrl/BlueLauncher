@@ -120,6 +120,43 @@ internal object TvUi {
         val target = card.left + card.width / 2 - scroll.width / 2
         val clamped = target.coerceIn(0, (strip.width - scroll.width).coerceAtLeast(0))
         if (scroll.scrollX != clamped) scroll.smoothScrollTo(clamped, 0)
+        ensureVerticalVisible(card)
+    }
+
+    /**
+     * Keep the focused card fully on screen vertically. The focus scale (1.07x)
+     * makes the card slightly larger than its layout box, and ScrollView's own
+     * scroll-to-focus aligns the card flush with the viewport edge (running
+     * after this listener), which clips the scaled stroke. The scroll is posted
+     * so it runs last and keeps a margin around the card.
+     */
+    fun ensureVerticalVisible(card: View) {
+        var parent: ViewGroup? = card.parent as? ViewGroup
+        while (parent != null && parent !is android.widget.ScrollView) parent = parent.parent as? ViewGroup
+        val scrollView = parent as? android.widget.ScrollView ?: return
+        scrollView.post {
+            val content = scrollView.getChildAt(0) ?: return@post
+            // Card position in content coordinates.
+            var top = 0
+            var node: View = card
+            while (node !== content) {
+                top += node.top
+                node = node.parent as? View ?: return@post
+            }
+            val margin = dp(card, 10f)
+            val viewport = scrollView.height - scrollView.paddingTop - scrollView.paddingBottom
+            val cardTop = top - margin
+            val cardBottom = top + card.height + margin
+            val visibleTop = scrollView.scrollY
+            val visibleBottom = scrollView.scrollY + viewport
+            val target = when {
+                cardTop < visibleTop -> cardTop
+                cardBottom > visibleBottom -> cardBottom - viewport
+                else -> return@post
+            }
+            val maxScroll = (content.height - viewport).coerceAtLeast(0)
+            scrollView.smoothScrollTo(0, target.coerceIn(0, maxScroll))
+        }
     }
 
     fun roundIcon(view: View, radiusDp: Float = 14f) {

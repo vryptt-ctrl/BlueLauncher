@@ -1,0 +1,104 @@
+---
+import { Picture } from 'astro:assets';
+import type { Shot } from '@/data/shots';
+
+interface Props {
+  shot: Shot;
+  /** Above-the-fold hero image: load eagerly and prioritise it for LCP. */
+  priority?: boolean;
+  sizes?: string;
+  class?: string;
+}
+
+const {
+  shot,
+  priority = false,
+  sizes = '(min-width: 1100px) 900px, (min-width: 700px) 88vw, 92vw',
+  class: className,
+} = Astro.props;
+---
+
+<figure class:list={['tv', className]}>
+  <div class="tv__bezel">
+    <div class="tv__screen">
+      <Picture
+        src={shot.image}
+        alt={shot.alt}
+        widths={[640, 960, 1280, 1920]}
+        sizes={sizes}
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        loading={priority ? 'eager' : 'lazy'}
+        decoding={priority ? 'sync' : 'async'}
+        fetchpriority={priority ? 'high' : 'auto'}
+        class="tv__image"
+      />
+      <span class="tv__scanline" aria-hidden="true"></span>
+    </div>
+  </div>
+  <figcaption class="tv__caption">
+    <span class="tv__title">{shot.title}</span>
+    <span class="tv__text">{shot.caption}</span>
+  </figcaption>
+</figure>
+
+<style>
+  .tv {
+    margin: 0;
+  }
+
+  .tv__bezel {
+    position: relative;
+    padding: 10px;
+    border-radius: var(--r-lg);
+    background: linear-gradient(180deg, #1c273f, #0d1526);
+    border: 1px solid var(--border-strong);
+    box-shadow:
+      0 40px 90px -50px rgb(0 0 0 / 95%),
+      0 0 0 1px rgb(124 225 255 / 8%),
+      0 1px 0 rgb(255 255 255 / 8%) inset;
+  }
+
+  .tv__screen {
+    position: relative;
+    overflow: hidden;
+    border-radius: calc(var(--r-lg) - 8px);
+    background: var(--bg-deep);
+    aspect-ratio: 16 / 9;
+  }
+
+  .tv__screen :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .tv__scanline {
+    /* A single hairline at the top edge reads as a display bezel highlight
+       without adding a moving effect that would fight the reduced-motion rule. */
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(124 225 255 / 45%), transparent);
+  }
+
+  .tv__caption {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: var(--gap);
+  }
+
+  .tv__title {
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+
+  .tv__text {
+    font-size: var(--step-0);
+    color: var(--text-dim);
+    max-width: 60ch;
+  }
+</style>

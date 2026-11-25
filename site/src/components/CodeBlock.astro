@@ -1,0 +1,153 @@
+---
+import Icon from './Icon.astro';
+
+/**
+ * Code block with a copy button. The copy button is progressively enhanced:
+ * without JS nothing happens, but the command stays selectable by hand.
+ */
+interface Props {
+  code: string;
+  lang?: string;
+  label?: string;
+  /** Hide the header bar for one-line snippets used inside prose. */
+  compact?: boolean;
+}
+
+const { code, lang = 'shell', label, compact = false } = Astro.props;
+const id = `code-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<figure class:list={['code', { 'code--compact': compact }]}>
+  {
+    !compact && (
+      <figcaption class="code__bar">
+        <span class="code__lang">{label ?? lang}</span>
+        <button class="code__copy" type="button" data-copy={id}>
+          <Icon name="copy" size={15} />
+          <span data-copy-label aria-live="polite">
+            Copy
+          </span>
+        </button>
+      </figcaption>
+    )
+  }
+  <pre id={id} tabindex="0"><code>{code}</code></pre>
+</figure>
+
+<style>
+  .code {
+    margin: 0;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+  }
+
+  .code__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap);
+    padding: 0.45rem 0.55rem 0.45rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+    background: rgb(17 26 42 / 60%);
+  }
+
+  .code__lang {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .code__copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--r-sm);
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    font-size: var(--step--1);
+    font-weight: 400;
+    transition:
+      color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  .code__copy:hover {
+    color: var(--text);
+    background: rgb(124 225 255 / 8%);
+    border-color: var(--border-strong);
+  }
+
+  .code__copy[data-copied='true'] {
+    color: var(--cyan);
+    border-color: var(--border-accent);
+  }
+
+  pre {
+    margin: 0;
+    padding: 0.95rem 1.1rem;
+    overflow-x: auto;
+    color: #d7e3f7;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    tab-size: 2;
+    scrollbar-width: thin;
+  }
+
+  pre::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  pre::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 8px;
+  }
+
+  .code--compact {
+    border: 0;
+    background: none;
+  }
+
+  .code--compact pre {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.8125rem;
+    background: rgb(5 8 15 / 70%);
+    border-radius: var(--r-sm);
+  }
+</style>
+
+<script>
+  // One delegated listener handles every copy button on the page.
+  document.addEventListener('click', async (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-copy]');
+    if (!button) return;
+
+    const target = document.getElementById(button.dataset.copy || '');
+    if (!target) return;
+
+    try {
+      await navigator.clipboard.writeText(target.textContent ?? '');
+    } catch {
+      // Clipboard API needs a secure context; fall back to a manual selection.
+      const range = document.createRange();
+      range.selectNodeContents(target);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      return;
+    }
+
+    const label = button.querySelector<HTMLElement>('[data-copy-label]');
+    button.dataset.copied = 'true';
+    if (label) label.textContent = 'Copied';
+    window.setTimeout(() => {
+      button.dataset.copied = 'false';
+      if (label) label.textContent = 'Copy';
+    }, 1800);
+  });
+</script>

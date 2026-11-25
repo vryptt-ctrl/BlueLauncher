@@ -1,0 +1,77 @@
+/**
+ * Single source of truth for links, version numbers and navigation.
+ * Every fact here is copied from README.md, CHANGELOG.md, app/build.gradle.kts
+ * or app/src/main/res/values/strings.xml — update those first, then this file.
+ */
+
+export const SITE = {
+  name: 'BlueLauncher',
+  tagline: 'A small, offline home screen for Android TV.',
+  description:
+    'A deliberately small, native Android TV home launcher. Kotlin owns the lifecycle, package discovery, D-pad UI and preferences; a compact Rust/JNI module ranks and searches apps. No network calls, ads, analytics or services.',
+  version: '1.1.0',
+  versionDate: '2026-11-25',
+  releaseDate: '2026-11-25',
+  packageId: 'com.bluelabs.bluelauncher',
+  minSdk: 23,
+  compileSdk: 36,
+  ndkVersion: '27.2.12479018',
+  jdk: 17,
+  repo: 'https://github.com/vryptt-ctrl/BlueLauncher',
+  releases: 'https://github.com/vryptt-ctrl/BlueLauncher/releases/latest',
+  allReleases: 'https://github.com/vryptt-ctrl/BlueLauncher/releases',
+  issues: 'https://github.com/vryptt-ctrl/BlueLauncher/issues',
+  issueTemplates: 'https://github.com/vryptt-ctrl/BlueLauncher/issues/new/choose',
+  security: 'https://github.com/vryptt-ctrl/BlueLauncher/blob/main/SECURITY.md',
+  contributing: 'https://github.com/vryptt-ctrl/BlueLauncher/blob/main/CONTRIBUTING.md',
+  licenseCode: 'https://github.com/vryptt-ctrl/BlueLauncher/blob/main/LICENSE',
+  licenseAssets: 'https://github.com/vryptt-ctrl/BlueLauncher/blob/main/brand/LICENSE-ASSETS.md',
+  changelog: 'https://github.com/vryptt-ctrl/BlueLauncher/blob/main/CHANGELOG.md',
+  ogImage: '/brand/social-preview-1280x640.png',
+} as const;
+
+export type NavItem = { label: string; href: string };
+
+export const NAV: NavItem[] = [
+  { label: 'Features', href: '/features/' },
+  { label: 'Screenshots', href: '/screenshots/' },
+  { label: 'Install', href: '/install/' },
+  { label: 'Build', href: '/build/' },
+  { label: 'Changelog', href: '/changelog/' },
+];
+
+export const FOOTER_LINKS: { title: string; links: NavItem[] }[] = [
+  {
+    title: 'Product',
+    links: [
+      { label: 'Features', href: '/features/' },
+      { label: 'Screenshots', href: '/screenshots/' },
+      { label: 'Install on a TV', href: '/install/' },
+      { label: 'Changelog', href: '/changelog/' },
+    ],
+  },
+  {
+    title: 'Developers',
+    links: [
+      { label: 'Build from source', href: '/build/' },
+      { label: 'Architecture', href: '/architecture/' },
+      { label: 'Contributing', href: SITE.contributing },
+      { label: 'Report a bug', href: SITE.issueTemplates },
+    ],
+  },
+  {
+    title: 'Project',
+    links: [
+      { label: 'GitHub repository', href: SITE.repo },
+      { label: 'Releases', href: SITE.allReleases },
+      { label: 'Security policy', href: SITE.security },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { label: 'Licenses', href: '/license/' },
+      { label: 'Code: GPL-3.0', href: SITE.licenseCode },
+    ],
+  },
+];

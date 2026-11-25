@@ -1,0 +1,87 @@
+---
+import Icon from './Icon.astro';
+import type { IconName } from '@/data/icons';
+
+interface Props {
+  icon: IconName;
+  title: string;
+  body: string;
+  href?: string;
+  meta?: string;
+}
+
+const { icon, title, body, href, meta } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag class:list={['fcard', { 'fcard--link': href }]} {...href ? { href } : {}}>
+  <span class="fcard__icon"><Icon name={icon} size={20} /></span>
+  <h3 class="fcard__title">{title}</h3>
+  <p class="fcard__body">{body}</p>
+  {meta && <p class="fcard__meta">{meta}</p>}
+</Tag>
+
+<style>
+  .fcard {
+    position: relative;
+    display: block;
+    padding: var(--gap-md);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    background: linear-gradient(180deg, rgb(28 39 63 / 55%), rgb(17 26 42 / 85%));
+    text-decoration: none;
+    color: inherit;
+    transition:
+      transform var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+
+  .fcard--link:hover,
+  .fcard--link:focus-visible {
+    transform: translateY(-4px);
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .fcard__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    margin-bottom: var(--gap);
+    border-radius: var(--r-md);
+    color: var(--accent-bright);
+    background: rgb(47 125 255 / 12%);
+    border: 1px solid rgb(124 225 255 / 18%);
+  }
+
+  .fcard__title {
+    font-size: var(--step-1);
+    font-weight: 700;
+    letter-spacing: -0.012em;
+    color: var(--text);
+  }
+
+  .fcard__body {
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.62;
+    color: var(--text-dim);
+  }
+
+  .fcard__meta {
+    margin-top: var(--gap-sm);
+    font-size: var(--step--1);
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fcard--link:hover,
+    .fcard--link:focus-visible {
+      transform: none;
+    }
+  }
+</style>

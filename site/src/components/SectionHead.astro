@@ -1,0 +1,39 @@
+---
+interface Props {
+  kicker: string;
+  title: string;
+  lede?: string;
+  /** `h1` only on the home hero; every other section uses `h2`. */
+  level?: 'h1' | 'h2';
+  align?: 'start' | 'center';
+  id?: string;
+}
+
+const { kicker, title, lede, level: Heading = 'h2', align = 'start', id } = Astro.props;
+---
+
+<header class:list={['head', `head--${align}`]}>
+  <p class="kicker">{kicker}</p>
+  <Heading class={Heading === 'h1' ? 'display' : 'h2'} id={id}>{title}</Heading>
+  {lede && <p class="lede head__lede">{lede}</p>}
+</header>
+
+<style>
+  .head {
+    max-width: 66ch;
+    margin-bottom: var(--gap-lg);
+  }
+
+  .head--center {
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .head--center .kicker::before {
+    display: none;
+  }
+
+  .head__lede {
+    margin-top: var(--gap-sm);
+  }
+</style>

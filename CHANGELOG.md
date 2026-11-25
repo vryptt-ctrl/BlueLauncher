@@ -4,6 +4,19 @@ All notable changes to BlueLauncher are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added
+- Marketing and documentation site under `site/` (static Astro build, self-hosted fonts, no third-party requests), published to GitHub Pages by `.github/workflows/pages.yml`.
+- About panel now shows the version from the build instead of a hard-coded string.
+
+### Fixed
+- App cards no longer paint across the screen gutter while a row is scrolled. Each horizontal strip now sits in its own clipping container, so scrolled-out cards are cut at the row edge while the hero, search pill and category chips still draw their focus-scale overflow.
+- The focused card keeps its full accent stroke at both ends of every strip: strips have 10 dp of horizontal headroom, the scroll views are pulled outwards by the same amount so cards still align with the content margin, and the fading-edge length was shortened to match.
+- The "Large app cards" setting no longer clips the bottom stroke of the focused card; row heights are derived from the card size and re-applied when the setting changes.
+- Focus no longer jumps between rows when a strip is rebuilt (favorite toggled, order changed): the rebuild restores the cursor to the same app, or the nearest position if that app left the list.
+- Left/right presses at either end of a strip stay inside that row instead of leaving for an unrelated row.
+- The first Down press from the root view now lands on the main apps strip instead of the bottom row.
+- A focused card is kept fully on screen vertically, including its focus-scale overflow.
+
 ## [1.1.0] - 2026-11-25
 
 ### Added

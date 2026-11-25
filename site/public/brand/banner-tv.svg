@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="640" height="360">
+  <title>BlueLauncher Android TV banner (320x180, opaque)</title>
+  <defs>
+    <radialGradient id="glow" cx="72" cy="78" r="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2F7DFF" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#2F7DFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hi" x1="53" y1="21" x2="79" y2="47" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5AA9FF"/>
+      <stop offset="1" stop-color="#2F7DFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" fill="#0B1220"/>
+  <rect width="320" height="180" fill="url(#glow)"/>
+  <svg x="24" y="48" width="84" height="84" viewBox="15 11 74 74">
+    <rect x="21" y="21" width="26" height="26" rx="7" fill="#3A5C94"/>
+    <rect x="21" y="53" width="26" height="26" rx="7" fill="#3A5C94"/>
+    <rect x="53" y="53" width="26" height="26" rx="7" fill="#3A5C94"/>
+    <rect x="53" y="21" width="26" height="26" rx="7" fill="url(#hi)"/>
+    <rect x="50" y="18" width="32" height="32" rx="9.5" fill="none" stroke="#7CE1FF" stroke-width="2.5"/>
+  </svg>
+  <text x="120" y="99" font-family="Inter, Helvetica, Arial, sans-serif" font-size="26" fill="#FFFFFF" font-weight="700" letter-spacing="-0.5">Blue<tspan font-weight="400" fill="#7CC4FF">Launcher</tspan></text>
+</svg>

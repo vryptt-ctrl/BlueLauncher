@@ -1,0 +1,114 @@
+---
+import Icon from './Icon.astro';
+import type { Step } from '@/data/content';
+import CodeBlock from './CodeBlock.astro';
+
+interface Props {
+  steps: Step[];
+  /** "Install" or "Build" — used for the ordinal label read by screen readers. */
+  label: string;
+}
+
+const { steps, label } = Astro.props;
+---
+
+<ol class="steps">
+  {
+    steps.map((step, index) => (
+      <li class="step">
+        <div class="step__marker" aria-hidden="true">
+          <span>{String(index + 1).padStart(2, '0')}</span>
+        </div>
+        <div class="step__body">
+          <h3 class="step__title">
+            <span class="visually-hidden">
+              {label} step {index + 1}:{' '}
+            </span>
+            {step.title}
+          </h3>
+          <p class="step__text">{step.body}</p>
+          {step.code && <CodeBlock code={step.code} label={step.lang ?? 'shell'} />}
+          {step.note && (
+            <p class="step__note">
+              <Icon name="check" size={15} />
+              {step.note}
+            </p>
+          )}
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--gap-lg);
+    counter-reset: step;
+  }
+
+  .step {
+    display: grid;
+    /* minmax(0, 1fr) instead of 1fr: a bare 1fr track has an auto minimum, so a
+       long <pre> line would stretch the whole row past the viewport. */
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--gap-md);
+    align-items: start;
+  }
+
+  .step__marker {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-strong);
+    background: linear-gradient(180deg, var(--surface-raised), var(--surface));
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--accent-bright);
+    box-shadow: 0 0 0 1px rgb(124 225 255 / 8%);
+  }
+
+  .step__title {
+    font-size: var(--step-2);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .step__text {
+    margin-top: 0.45rem;
+    color: var(--text-dim);
+    font-size: var(--step-0);
+    max-width: 68ch;
+  }
+
+  .step__body :global(.code) {
+    margin-top: var(--gap-sm);
+  }
+
+  .step__note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    margin-top: var(--gap-sm);
+    font-size: var(--step--1);
+    color: var(--text-faint);
+  }
+
+  .step__note :global(svg) {
+    margin-top: 0.2em;
+    color: var(--cyan);
+  }
+
+  @media (max-width: 560px) {
+    .step {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--gap-sm);
+    }
+  }
+</style>

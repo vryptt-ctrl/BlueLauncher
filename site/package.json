@@ -1,0 +1,25 @@
+{
+  "name": "bluelauncher-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static marketing and documentation site for BlueLauncher, an Android TV home launcher.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "format": "prettier --write \"src/**/*.{astro,ts,css}\""
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.6",
+    "astro": "^7.4.13"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "prettier": "^3.4.2",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^5.7.2"
+  }
+}

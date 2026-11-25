@@ -49,5 +49,10 @@ keystore/
 # Screenshots & test artifacts
 app/build/screenshots/
 
+# Astro site (site/) — dependencies, build output and generated types
+site/node_modules/
+site/dist/
+site/.astro/
+
 # Environment
 .env

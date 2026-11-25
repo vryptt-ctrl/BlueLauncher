@@ -99,6 +99,10 @@ The only AndroidX artifact is `androidx.activity`, used for lifecycle-safe docum
 
 The Focus Grid brand assets — logo, icon set, TV banner and social preview — live in [`brand/`](brand/README.md), including editable SVG sources, and are licensed under [CC BY 4.0](brand/LICENSE-ASSETS.md) (the code is GPL-3.0; the licenses are independent). The logo is original artwork.
 
+## Website
+
+The marketing and documentation site lives in [`site/`](site/README.md). It is a static [Astro](https://astro.build) build published to GitHub Pages at <https://vryptt-ctrl.github.io/BlueLauncher/>; `.github/workflows/pages.yml` redeploys it on every push that touches `site/`. The site self-hosts Inter, makes no third-party requests and mirrors the facts in this README, `CHANGELOG.md` and `app/build.gradle.kts`.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests are welcome through [issue templates](.github/ISSUE_TEMPLATE); pull requests should follow the [PR template](.github/PULL_REQUEST_TEMPLATE.md).

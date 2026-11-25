@@ -22,6 +22,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Space
 import android.widget.TextView
+import com.bluelabs.bluelauncher.BuildConfig
 import com.bluelabs.bluelauncher.R
 import com.bluelabs.bluelauncher.data.AppCategory
 import com.bluelabs.bluelauncher.data.LauncherApp
@@ -70,28 +71,32 @@ class LauncherViews(
     private val gamesChip = heading()
     private val appsStrip = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
-        // Vertical padding gives the focus-scaled card headroom INSIDE the strip
-        // bounds: cards are 122dp tall, the 1.07 focus scale adds ~4dp on each
-        // side; with clipToPadding=false the scaled strokes render in padding.
+        // The scroll view clips this strip to the strip's own bounds, so the
+        // strip needs padding on every side to hold the focus-scaled card
+        // (1.07x) plus its stroke. The scroll view is pulled outwards by the
+        // same amount so cards still line up with the content margin.
         clipToPadding = false
-        setPadding(0, dp(6), 0, dp(6))
+        setPadding(dp(HEADROOM_DP), dp(6), dp(HEADROOM_DP), dp(6))
     }
     private val appsScroll = horizontalScroll()
+    private val appsRow = rowFrame().apply { addView(appsScroll, FrameLayout.LayoutParams(-1, -1)) }
     private val favoritesTitle = heading()
-        private val favoritesStrip = LinearLayout(context).apply {
+    private val favoritesStrip = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
-        // Same headroom scheme as appsStrip (compact cards 68dp * 1.07 = ~73dp).
+        // Same headroom scheme as appsStrip (compact cards grow the same 7%).
         clipToPadding = false
-        setPadding(0, dp(6), 0, dp(6))
+        setPadding(dp(HEADROOM_DP), dp(6), dp(HEADROOM_DP), dp(6))
     }
     private val favoritesScroll = horizontalScroll()
+    private val favoritesRow = rowFrame().apply { addView(favoritesScroll, FrameLayout.LayoutParams(-1, -1)) }
     private val recentTitle = heading()
     private val recentStrip = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
         clipToPadding = false
-        setPadding(0, dp(6), 0, dp(6))
+        setPadding(dp(HEADROOM_DP), dp(6), dp(HEADROOM_DP), dp(6))
     }
     private val recentScroll = horizontalScroll()
+    private val recentRow = rowFrame().apply { addView(recentScroll, FrameLayout.LayoutParams(-1, -1)) }
     private val searchBox = EditText(context)
     private val searchPanel = FrameLayout(context).apply {
         clipChildren = false
@@ -123,6 +128,14 @@ class LauncherViews(
     }
 
     companion object {
+        /**
+         * Horizontal breathing room inside every app strip, in dp. A focused card
+         * grows by 7% (about 10 dp on a 148 dp card), and the scroll view clips the
+         * strip to the strip's own bounds, so without this padding the accent stroke
+         * of the first/last card is cut off at the row ends.
+         */
+        const val HEADROOM_DP = 10
+
         /** Material Symbols Rounded codepoints (subset bundled as res/font/blue_icons.ttf). */
         const val GLYPH_SEARCH = ''
         const val GLYPH_SETTINGS = ''
@@ -439,7 +452,7 @@ class LauncherViews(
             textSize = 13f; setTextColor(palette.text); setLineSpacing(dp(3).toFloat(), 1f)
         }
         showPanelDialog(
-            title = context.getString(R.string.about_title),
+            title = context.getString(R.string.about_title, BuildConfig.VERSION_NAME),
             subtitle = null,
             content = message,
             dismissAction = { dialog -> dialog.dismiss() },
@@ -469,6 +482,21 @@ class LauncherViews(
             clipChildren = false; clipToPadding = false; addView(content)
         }
         root.addView(scrollViewport, FrameLayout.LayoutParams(-1, -1))
+
+        // From the root frame the platform focus finder has no directional anchor
+        // (the root spans the whole screen) and used to pick the bottom row. Route
+        // the first DOWN to the main apps strip instead.
+        root.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN &&
+                event.action == KeyEvent.ACTION_DOWN &&
+                root.hasFocus() && appsStrip.childCount > 0
+            ) {
+                appsStrip.getChildAt(0).requestFocus()
+                true
+            } else {
+                false
+            }
+        }
 
         val top = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
         brand.apply {
@@ -531,12 +559,19 @@ class LauncherViews(
         appsScroll.addView(appsStrip)
         // Content area (height minus 6dp top/bottom padding) must fully contain
         // the focus-scaled card: 122dp * 1.07 = ~131dp of card + 12dp padding.
-        content.addView(appsScroll, TvUi.params(-1, dp(144), bottom = dp(8)))
-        addOptionalRow(favoritesTitle, favoritesScroll, favoritesStrip)
-        addOptionalRow(recentTitle, recentScroll, recentStrip)
+        // The negative side margins cancel the strip's own horizontal headroom
+        // so the first card still starts exactly at the content margin.
+        content.addView(
+            appsRow,
+            TvUi.params(-1, dp(rowHeightDp(compact = false)), left = -dp(HEADROOM_DP), right = -dp(HEADROOM_DP), bottom = dp(8)),
+        )
+        addOptionalRow(favoritesTitle, favoritesRow, favoritesScroll, favoritesStrip)
+        addOptionalRow(recentTitle, recentRow, recentScroll, recentStrip)
         listOf(appsScroll, favoritesScroll, recentScroll).forEach { scroll ->
+            // The fade length is kept below the strip headroom so the accent
+            // stroke of a focused card at either end of the row stays intact.
             scroll.isHorizontalFadingEdgeEnabled = true
-            scroll.setFadingEdgeLength(dp(38))
+            scroll.setFadingEdgeLength(dp(HEADROOM_DP))
         }
         toastLine.apply {
             textSize = 14f; gravity = Gravity.CENTER; setTextColor(palette.text); visibility = View.GONE
@@ -604,11 +639,21 @@ class LauncherViews(
         })
     }
 
-    private fun addOptionalRow(title: TextView, scroll: HorizontalScrollView, strip: LinearLayout) {
+    private fun addOptionalRow(
+        title: TextView,
+        row: FrameLayout,
+        scroll: HorizontalScrollView,
+        strip: LinearLayout,
+    ) {
         content.addView(sectionHeading(title), TvUi.params(-1, dp(26), bottom = dp(3)))
         scroll.addView(strip)
         // Compact cards: 68dp * 1.07 = 73dp must fit inside 92-12 = 80dp of content area.
-        content.addView(scroll, TvUi.params(-1, dp(92), bottom = dp(6)))
+        // The negative side margins cancel the strip's horizontal headroom so the
+        // first card still aligns with the content margin.
+        content.addView(
+            row,
+            TvUi.params(-1, dp(rowHeightDp(compact = true)), left = -dp(HEADROOM_DP), right = -dp(HEADROOM_DP), bottom = dp(6)),
+        )
     }
 
     /** Gentle breathing pulse on the resume button while it is not focused. */
@@ -647,6 +692,8 @@ class LauncherViews(
         } else {
             context.resources.getQuantityString(R.plurals.hero_ready, apps.size, apps.size)
         }
+        // Card-size changes need the rows resized before the strips are rebuilt.
+        applyRowMetrics()
         heroHint.text = when {
             normalized.isNotEmpty() -> context.getString(R.string.hero_hint_search)
             apps.isEmpty() -> context.getString(R.string.empty_apps_hint)
@@ -682,9 +729,9 @@ class LauncherViews(
             chip.setTextColor(if (selected) palette.onAccent else palette.text)
         }
         favoritesTitle.visibility = if (showFavorites) View.VISIBLE else View.GONE
-        favoritesScroll.visibility = favoritesTitle.visibility
+        favoritesRow.visibility = favoritesTitle.visibility
         recentTitle.visibility = if (showRecent) View.VISIBLE else View.GONE
-        recentScroll.visibility = recentTitle.visibility
+        recentRow.visibility = recentTitle.visibility
     }
 
     private fun filteredApps(@Suppress("UNUSED_PARAMETER") normalized: String): List<LauncherApp> =
@@ -697,6 +744,19 @@ class LauncherViews(
         normalized: String = "",
         emptyHint: Boolean = false,
     ) {
+        // Remember which card held focus so a rebuild (favorite toggled, order
+        // changed, theme applied) restores the cursor instead of dropping it to
+        // the root view - which used to look like focus jumping between rows.
+        // Only when this strip (or one of its cards) is focused, so a rebuild
+        // triggered while the user is typing in search does not steal focus.
+        val hadFocus = strip.hasFocus() ||
+            (0 until strip.childCount).any { strip.getChildAt(it).hasFocus() }
+        val focusedPackage = if (hadFocus) strip.tag as? String else null
+        val focusedIndex = if (hadFocus) {
+            (0 until strip.childCount).firstOrNull { strip.getChildAt(it).hasFocus() } ?: 0
+        } else {
+            0
+        }
         strip.removeAllViews()
         if (items.isEmpty() && (!compact || emptyHint)) {
             strip.addView(TextView(context).apply {
@@ -709,34 +769,105 @@ class LauncherViews(
             }, TvUi.params(dp(400), dp(110)))
             return
         }
-        val favoriteOrder = preferences.favoritesInOrder(apps.map { it.packageName })
+        var restored: View? = null
         items.forEachIndexed { index, app ->
             val (width, height) = cardDimensions(compact)
-            val card = appCard(app, compact, index, favoriteOrder)
+            val card = appCard(app, compact, index)
+            card.tag = app.packageName
+            if (app.packageName == focusedPackage) restored = card
             strip.addView(card, TvUi.params(width, height, right = dp(10)))
             // Items glide in from the leading edge with a per-index delay.
             TvUi.staggerIn(card, index)
         }
+        if (restored != null) {
+            restored.post {
+                if (!restored.hasFocus()) restored.requestFocus()
+                TvUi.centerCardInStrip(restored)
+            }
+        } else if (hadFocus) {
+            // The previously focused app left this list (unfavorited, filtered
+            // out). Keep the cursor in the strip at the nearest position rather
+            // than letting it fall through to the root view.
+            strip.post {
+                val fallback = strip.getChildAt(focusedIndex.coerceAtMost(strip.childCount - 1))
+                if (fallback != null && fallback.isFocusable && !strip.hasFocus()) {
+                    fallback.requestFocus()
+                    TvUi.centerCardInStrip(fallback)
+                }
+            }
+        }
+    }
+
+    /** Card size multiplier from the "App card size" setting. */
+    private fun iconScale() = when (preferences.appIconSize) {
+        LauncherPreferences.ICON_SIZE_COMPACT -> 0.88f
+        LauncherPreferences.ICON_SIZE_LARGE -> 1.13f
+        else -> 1f
+    }
+
+    /**
+     * Row height that holds a focused card of the current size: the card grows
+     * by the 1.07 focus scale, and the strip keeps 6 dp of vertical padding on
+     * each side. Rows are clipped, so an undersized row would cut the bottom
+     * accent stroke of the focused card. The comfortable/compact minimums are
+     * the historical heights, so only the large card setting grows a row.
+     */
+    private fun rowHeightDp(compact: Boolean): Int {
+        val base = if (compact) 68f else 122f
+        val minimum = if (compact) 92 else 144
+        val needed = (base * iconScale() * 1.07f + 12f).toInt() + 1
+        return maxOf(minimum, needed)
+    }
+
+    /** Re-apply row heights after the card-size setting changes. */
+    private fun applyRowMetrics() {
+        listOf(
+            appsRow to rowHeightDp(compact = false),
+            favoritesRow to rowHeightDp(compact = true),
+            recentRow to rowHeightDp(compact = true),
+        ).forEach { (row, height) ->
+            val params = row.layoutParams as ViewGroup.MarginLayoutParams
+            val px = dp(height)
+            if (params.height != px) {
+                params.height = px
+                row.layoutParams = params
+            }
+        }
     }
 
     private fun cardDimensions(compact: Boolean): Pair<Int, Int> {
-        val scale = when (preferences.appIconSize) {
-            LauncherPreferences.ICON_SIZE_COMPACT -> 0.88f
-            LauncherPreferences.ICON_SIZE_LARGE -> 1.13f
-            else -> 1f
-        }
+        val scale = iconScale()
         return dp((if (compact) 176f else 148f) * scale) to dp((if (compact) 68f else 122f) * scale)
     }
 
     /** Poster-style card: icon tile on top with the label beneath; compact rows stay side-by-side. */
-    private fun appCard(app: LauncherApp, compact: Boolean, index: Int, favoriteOrder: List<String>): View {
+    private fun appCard(app: LauncherApp, compact: Boolean, index: Int): View {
         val card = FrameLayout(context).apply {
             TvUi.setSelectableBackground(this, { palette }, 18f, onFocus = { focused ->
-                if (focused) TvUi.centerCardInStrip(this)
+                if (focused) {
+                    // Remember the focused app on the strip so a later rebuild
+                    // can restore the cursor to the same card.
+                    (parent as? View)?.tag = app.packageName
+                    TvUi.centerCardInStrip(this)
+                }
             })
             isLongClickable = true
             contentDescription = "${app.label}, ${if (preferences.isFavorite(app.packageName)) context.getString(R.string.unfavorite_app) else context.getString(R.string.favorite_app)}"
             setOnClickListener { callbacks.launch(app) }
+            setOnKeyListener { view, keyCode, event ->
+                // Horizontal navigation belongs to this row. Without clamping, the
+                // platform focus finder leaves the row at either end and lands on an
+                // unrelated row, which reads as the cursor jumping around.
+                if (event.action != KeyEvent.ACTION_DOWN) return@setOnKeyListener false
+                if (keyCode != KeyEvent.KEYCODE_DPAD_LEFT && keyCode != KeyEvent.KEYCODE_DPAD_RIGHT) {
+                    return@setOnKeyListener false
+                }
+                val row = view.parent as? ViewGroup ?: return@setOnKeyListener false
+                val position = row.indexOfChild(view)
+                val last = row.childCount - 1
+                if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && position >= last) true
+                else keyCode == KeyEvent.KEYCODE_DPAD_LEFT && position <= 0
+            }
             setOnLongClickListener {
                 if (!preferences.isFavorite(app.packageName)) {
                     callbacks.toggleFavorite(app)
@@ -756,23 +887,8 @@ class LauncherViews(
                 heldDialog = showPanelDialog(title = app.label, subtitle = null, content = menu)
                 true
             }
-            setOnKeyListener { _, keyCode, event ->
-                if (event.action != KeyEvent.ACTION_DOWN) return@setOnKeyListener false
-                val currentIndex = favoriteOrder.indexOf(app.packageName)
-                if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT && preferences.isFavorite(app.packageName) && currentIndex > 0) {
-                    callbacks.reorderApp(app, -1); return@setOnKeyListener true
-                }
-                if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && preferences.isFavorite(app.packageName) && currentIndex >= 0 && currentIndex < favoriteOrder.lastIndex) {
-                    callbacks.reorderApp(app, 1); return@setOnKeyListener true
-                }
-                false
-            }
         }
-        val scale = when (preferences.appIconSize) {
-            LauncherPreferences.ICON_SIZE_COMPACT -> 0.88f
-            LauncherPreferences.ICON_SIZE_LARGE -> 1.13f
-            else -> 1f
-        }
+        val scale = iconScale()
         if (compact) {
             val iconTile = iconTile(app, dp(44f * scale))
             card.addView(iconTile, FrameLayout.LayoutParams(dp(44f * scale), dp(44f * scale),
@@ -859,12 +975,27 @@ class LauncherViews(
         TvUi.setSelectableBackground(this, { palette }, 13f); setOnClickListener { action() }
     }
 
+    /**
+     * Container for one horizontal strip. It clips its children to their own
+     * bounds, which is what stops a scrolled card from painting across the
+     * screen gutter, while the rest of the content column (hero, search pill,
+     * category chips) keeps drawing outside its own bounds.
+     */
+    private fun rowFrame() = FrameLayout(context).apply {
+        clipChildren = true
+        clipToPadding = true
+    }
+
     private fun horizontalScroll() = HorizontalScrollView(context).apply {
-        // Keeps default child clipping so the strip (and everything in it) is
-        // clipped to the strip bounds - offscreen cards are never drawn and can
-        // never leak into neighbouring rows. The focus-scale headroom lives in
-        // the strip's own padding instead.
-        isHorizontalScrollBarEnabled = false; clipToPadding = false
+        // Both clips must stay enabled. clipChildren culls cards that are
+        // scrolled out of the viewport; turning clipToPadding off as well made
+        // the strip skip its own bounds clip entirely, so once the row was
+        // scrolled the cards before the viewport were still painted at negative
+        // offsets and smeared across the left gutter. The focus-scale headroom
+        // lives in the strip's own padding, so nothing needs to escape here.
+        isHorizontalScrollBarEnabled = false
+        clipChildren = true
+        clipToPadding = true
         overScrollMode = View.OVER_SCROLL_NEVER
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS; isFocusable = false
     }
