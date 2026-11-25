@@ -4,6 +4,21 @@ All notable changes to BlueLauncher are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-25
+
+### Added
+- Official "Focus Grid" brand identity: adaptive launcher icon with Android 13+ themed (monochrome) support, PNG mipmaps for Android 6.x–7.x devices, and a dedicated 320×180 TV banner.
+- Round launcher icon variant for masked launchers.
+- Brand sources (SVG, logos, Play Store icon, social preview) committed under `brand/` for future edits and store listings.
+- Brand assets licensed separately under CC BY 4.0 (`brand/LICENSE-ASSETS.md`); the code remains GPL-3.0.
+- README now shows the logo, a four-shot screenshot gallery and a branding section.
+
+### Changed
+- Manifest points at `@mipmap/ic_launcher` with `roundIcon`; the temporary vector placeholder icon and vector TV banner were removed.
+- Screenshots retaken against the final branded build.
+
+## [1.0.0] - 2026-11-25
+
 ### Added
 - Redesigned home screen: layered gradient backdrop, taller hero card with accent glow, poster-style app cards with rounded icon tiles, spotlight-filled filter pills, and D-pad focus lift with glow shadow.
 - Hero play button now resumes the most recently opened app (focusable, clickable, screen-reader label "Continue with {app}").
@@ -27,5 +42,6 @@ All notable changes to BlueLauncher are documented in this file. The format foll
 - Rust-powered ranked search with Kotlin fallback; three dark themes; custom image wallpaper import.
 - 16 KB page alignment for arm64-v8a/x86_64; minSdk 23; R8-shrunk release builds.
 
-[Unreleased]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/vryptt-ctrl/BlueLauncher/releases/tag/v1.0.0
