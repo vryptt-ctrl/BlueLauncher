@@ -70,22 +70,26 @@ class LauncherViews(
     private val gamesChip = heading()
     private val appsStrip = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
-        clipChildren = false
+        // Vertical padding gives the focus-scaled card headroom INSIDE the strip
+        // bounds: cards are 122dp tall, the 1.07 focus scale adds ~4dp on each
+        // side; with clipToPadding=false the scaled strokes render in padding.
         clipToPadding = false
+        setPadding(0, dp(6), 0, dp(6))
     }
     private val appsScroll = horizontalScroll()
     private val favoritesTitle = heading()
         private val favoritesStrip = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
-        clipChildren = false
+        // Same headroom scheme as appsStrip (compact cards 68dp * 1.07 = ~73dp).
         clipToPadding = false
+        setPadding(0, dp(6), 0, dp(6))
     }
     private val favoritesScroll = horizontalScroll()
     private val recentTitle = heading()
     private val recentStrip = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
-        clipChildren = false
         clipToPadding = false
+        setPadding(0, dp(6), 0, dp(6))
     }
     private val recentScroll = horizontalScroll()
     private val searchBox = EditText(context)
@@ -525,7 +529,9 @@ class LauncherViews(
         }
         content.addView(filters, TvUi.params(-1, dp(40), bottom = dp(6)))
         appsScroll.addView(appsStrip)
-        content.addView(appsScroll, TvUi.params(-1, dp(134), bottom = dp(8)))
+        // Content area (height minus 6dp top/bottom padding) must fully contain
+        // the focus-scaled card: 122dp * 1.07 = ~131dp of card + 12dp padding.
+        content.addView(appsScroll, TvUi.params(-1, dp(144), bottom = dp(8)))
         addOptionalRow(favoritesTitle, favoritesScroll, favoritesStrip)
         addOptionalRow(recentTitle, recentScroll, recentStrip)
         listOf(appsScroll, favoritesScroll, recentScroll).forEach { scroll ->
@@ -601,7 +607,8 @@ class LauncherViews(
     private fun addOptionalRow(title: TextView, scroll: HorizontalScrollView, strip: LinearLayout) {
         content.addView(sectionHeading(title), TvUi.params(-1, dp(26), bottom = dp(3)))
         scroll.addView(strip)
-        content.addView(scroll, TvUi.params(-1, dp(84), bottom = dp(6)))
+        // Compact cards: 68dp * 1.07 = 73dp must fit inside 92-12 = 80dp of content area.
+        content.addView(scroll, TvUi.params(-1, dp(92), bottom = dp(6)))
     }
 
     /** Gentle breathing pulse on the resume button while it is not focused. */
@@ -853,12 +860,11 @@ class LauncherViews(
     }
 
     private fun horizontalScroll() = HorizontalScrollView(context).apply {
-        // Bounds clipping stays ON so offscreen cards are neither drawn over
-        // neighbouring rows nor rendered at all; clipToPadding=false plus the
-        // small top padding gives the focus-scaled card headroom to overflow
-        // vertically without being cut off.
+        // Keeps default child clipping so the strip (and everything in it) is
+        // clipped to the strip bounds - offscreen cards are never drawn and can
+        // never leak into neighbouring rows. The focus-scale headroom lives in
+        // the strip's own padding instead.
         isHorizontalScrollBarEnabled = false; clipToPadding = false
-        setPadding(0, dp(6), 0, 0)
         overScrollMode = View.OVER_SCROLL_NEVER
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS; isFocusable = false
     }
