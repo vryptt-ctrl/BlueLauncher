@@ -14,6 +14,16 @@ const requirements = [
   'An ABI covered by the build: arm64-v8a, armeabi-v7a or x86_64',
   'adb access over the network or USB, for the CLI route',
 ];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: INSTALL_TROUBLESHOOTING.map((item) => ({
+    '@type': 'Question',
+    name: item.title,
+    acceptedAnswer: { '@type': 'Answer', text: item.body },
+  })),
+};
 ---
 
 <Base
@@ -87,6 +97,8 @@ const requirements = [
       </p>
     </div>
   </section>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head-extras" />
 </Base>
 
 <style>

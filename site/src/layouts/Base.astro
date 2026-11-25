@@ -74,6 +74,13 @@ const schema = {
     <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={`${import.meta.env.BASE_URL}brand/icon-512.png`} />
     <link rel="manifest" href={`${import.meta.env.BASE_URL}site.webmanifest`} />
+    <!-- Icon sprite: cached across pages; prefetch keeps icons instant on navigation. -->
+    <link
+      rel="prefetch"
+      href={`${import.meta.env.BASE_URL}icons.svg`}
+      as="image"
+      type="image/svg+xml"
+    />
 
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE.name} />
@@ -89,6 +96,7 @@ const schema = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
+    <slot name="head-extras" />
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   </head>
   <body>

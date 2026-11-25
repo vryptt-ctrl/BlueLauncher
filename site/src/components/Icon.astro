@@ -1,5 +1,10 @@
 ---
-import { ICON_PATHS, GLYPH_FILLED, type IconName } from '@/data/icons';
+/**
+ * Inline `<use>` reference into the shared first-party sprite at /icons.svg
+ * (generated from src/data/icons.ts by scripts/build-icons.mjs). Each instance
+ * is one short line; path data ships once and is cached across pages.
+ */
+import type { IconName } from '@/data/icons';
 
 interface Props {
   name: IconName;
@@ -10,7 +15,6 @@ interface Props {
 }
 
 const { name, size = 20, label, class: className } = Astro.props;
-const filled = GLYPH_FILLED.includes(name);
 ---
 
 <svg
@@ -18,17 +22,13 @@ const filled = GLYPH_FILLED.includes(name);
   width={size}
   height={size}
   viewBox="0 0 24 24"
-  fill={filled ? 'currentColor' : 'none'}
-  stroke={filled ? 'none' : 'currentColor'}
-  stroke-width="1.75"
-  stroke-linecap="round"
-  stroke-linejoin="round"
   role={label ? 'img' : undefined}
   aria-hidden={label ? undefined : 'true'}
   aria-label={label}
   focusable="false"
-  set:html={ICON_PATHS[name]}
-/>
+>
+  <use href={`/icons.svg#i-${name}`}></use>
+</svg>
 
 <style>
   .icon {

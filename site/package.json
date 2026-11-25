@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "format": "prettier --write \"src/**/*.{astro,ts,css}\""
+    "format": "prettier --write \"src/**/*.{astro,ts,css}\"",
+    "prebuild": "node scripts/build-icons.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.6",
