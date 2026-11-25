@@ -75,7 +75,11 @@ const assetTerms = [
   </div>
 
   <section class="section" aria-labelledby="why-title">
-    <SectionHead kicker="Why two licences" title="Code and assets are licensed separately" id="why-title" />
+    <SectionHead
+      kicker="Why two licences"
+      title="Code and assets are licensed separately"
+      id="why-title"
+    />
     <div class="prose-custom">
       <p class="muted">
         A launcher is a program, and programs benefit from copyleft: if someone ships an improved
@@ -125,6 +129,9 @@ const assetTerms = [
 
   .cards {
     display: grid;
+    /* minmax(0, 1fr): an implicit auto track would let the licence cards'
+       min-content width exceed the shell padding on narrow screens. */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--gap);
   }
 

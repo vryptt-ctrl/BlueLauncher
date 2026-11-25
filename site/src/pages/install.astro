@@ -65,11 +65,7 @@ const requirements = [
   </section>
 
   <section class="section" aria-labelledby="trouble-title">
-    <SectionHead
-      kicker="Troubleshooting"
-      title="Common problems"
-      id="trouble-title"
-    />
+    <SectionHead kicker="Troubleshooting" title="Common problems" id="trouble-title" />
     <div class="faq">
       {
         INSTALL_TROUBLESHOOTING.map((item) => (
@@ -86,8 +82,8 @@ const requirements = [
     <div class="notice">
       <h2 class="h3">Release builds are unsigned</h2>
       <p class="muted">
-        The repository contains no production signing key. If your device blocks unsigned
-        packages, install the debug APK or assemble a signed release with your own keystore.
+        The repository contains no production signing key. If your device blocks unsigned packages,
+        install the debug APK or assemble a signed release with your own keystore.
       </p>
     </div>
   </section>

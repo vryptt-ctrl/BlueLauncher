@@ -13,10 +13,10 @@ import { url } from '@/lib/url';
 >
   <div class="page-intro">
     <p class="kicker">Screenshots</p>
-    <h1 class="display page-intro__title">The whole launcher, four screens.</h1>
+    <h1 class="display page-intro__title">Screenshots</h1>
     <p class="lede">
-      Captured at 1920×1080 on a TV-sized display. There is no hidden fifth screen — settings is a
-      dialog over the home screen.
+      Captured at 1920×1080 on a TV-sized display. Settings is a dialog over the home screen, not a
+      separate screen.
     </p>
   </div>
 
@@ -26,17 +26,13 @@ import { url } from '@/lib/url';
   </section>
 
   <section class="section" aria-labelledby="details-title">
-    <SectionHead kicker="Detail" title="What each screen is actually doing." id="details-title" />
+    <SectionHead kicker="Detail" title="What each screen does" id="details-title" />
     <div class="details">
       {
         SHOTS.map((shot) => (
           <article class="detail">
             <h3 class="detail__title">{shot.title}</h3>
             <p class="detail__text">{shot.caption}</p>
-            <p class="detail__alt">
-              <span class="detail__alt-label">Alt text</span>
-              {shot.alt}
-            </p>
           </article>
         ))
       }
@@ -45,14 +41,10 @@ import { url } from '@/lib/url';
 
   <section class="section">
     <div class="notice">
-      <h2 class="h3">Screenshots reflect version {SITE.version}</h2>
+      <h2 class="h3">Version</h2>
       <p class="muted">
-        These captures were retaken against the branded 1.1.0 build. If the layout changes, the
-        images are regenerated rather than patched — the gallery mirrors what the APK actually
-        ships.
-      </p>
-      <p>
-        <a href={url('/changelog/')}>See what changed in 1.1.0</a>
+        These captures show version {SITE.version}. When the layout changes, the images are
+        regenerated. <a href={url('/changelog/')}>See what changed in 1.1.0</a>
       </p>
     </div>
   </section>
@@ -107,24 +99,6 @@ import { url } from '@/lib/url';
     margin-top: 0.5rem;
     color: var(--text-dim);
     font-size: var(--step-0);
-  }
-
-  .detail__alt {
-    margin-top: var(--gap);
-    padding-top: var(--gap-sm);
-    border-top: 1px dashed var(--border-strong);
-    font-size: var(--step--1);
-    color: var(--text-faint);
-  }
-
-  .detail__alt-label {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent-bright);
   }
 
   .notice {

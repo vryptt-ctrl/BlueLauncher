@@ -32,9 +32,8 @@ const chips = [
         <span class="gradient-text">for Android TV</span>
       </h1>
       <p class="hero__lede">
-        A small, native home screen for your TV. Kotlin draws the interface and handles the
-        Android side; a Rust module ranks and searches your apps on the device. Nothing phones
-        home.
+        A small, native home screen for your TV. Kotlin draws the interface and handles the Android
+        side; a Rust module ranks and searches your apps on the device. Nothing phones home.
       </p>
 
       <div class="hero__actions">
@@ -105,11 +104,7 @@ const chips = [
     <div class="grid grid--3">
       {
         HIGHLIGHTS.map((item) => (
-          <FeatureCard
-            icon={item.icon as any}
-            title={item.title}
-            body={item.body}
-          />
+          <FeatureCard icon={item.icon as any} title={item.title} body={item.body} />
         ))
       }
       <FeatureCard
