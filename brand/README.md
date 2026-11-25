@@ -1,44 +1,44 @@
 # BlueLauncher brand assets
 
-Konsep: **Focus Grid**. Kisi 2×2 kotak aplikasi, satu kotak menyala dengan cincin fokus. Menggambarkan launcher berbasis D-pad.
+Concept: **Focus Grid**. A 2×2 grid of app tiles, one lit up with a focus ring. It represents a D-pad-driven launcher.
 
-## Warna
+## Colors
 
-| Peran | Hex |
+| Role | Hex |
 | --- | --- |
-| Navy (latar) | `#0B1220` |
-| Biru utama | `#2F7DFF` |
-| Biru terang | `#5AA9FF` |
-| Cyan (cincin fokus, glow) | `#7CE1FF` |
-| Kotak redup, latar terang | `#25406E` |
-| Kotak redup, latar gelap | `#3A5C94` |
-| Teks sekunder di latar gelap | `#7CC4FF` |
+| Navy (background) | `#0B1220` |
+| Primary blue | `#2F7DFF` |
+| Bright blue | `#5AA9FF` |
+| Cyan (focus ring, glow) | `#7CE1FF` |
+| Dim tile, light background | `#25406E` |
+| Dim tile, dark background | `#3A5C94` |
+| Secondary text on dark | `#7CC4FF` |
 
-## Tipografi
+## Typography
 
-Wordmark memakai **Inter** (Bold untuk "Blue", Regular untuk "Launcher"). File SVG berisi teks live dan akan jatuh ke Helvetica/Arial kalau Inter tidak terpasang. Semua PNG sudah dirender dengan Inter.
+The wordmark uses **Inter** (Bold for "Blue", Regular for "Launcher"). The SVG files contain live text and will fall back to Helvetica/Arial if Inter is not installed. All PNGs were rendered with Inter.
 
-## Isi folder
+## Folder contents
 
 ```
-svg/        sumber vektor (edit di sini)
-  icon.svg                  ikon dengan sudut membulat
-  icon-square.svg           ikon persegi penuh (Play Store, topeng sistem)
-  icon-round.svg            ikon bulat
-  mark-color.svg            tanda saja, latar terang
-  mark-color-on-dark.svg    tanda saja, latar gelap
-  mark-white.svg / mark-dark.svg   satu warna
-  logo-horizontal-light.svg / -dark.svg   tanda + nama
-  banner-tv.svg             banner Android TV 320×180
-  social-preview.svg        gambar pratinjau GitHub 1280×640
-png/        hasil ekspor siap pakai (ikon 16–1024, logo, banner, favicon)
-android/res/  drop-in untuk app/src/main/res
+svg/        vector sources (edit here)
+  icon.svg                  icon with rounded corners
+  icon-square.svg           full-square icon (Play Store, system masks)
+  icon-round.svg            circular icon
+  mark-color.svg            mark only, light background
+  mark-color-on-dark.svg    mark only, dark background
+  mark-white.svg / mark-dark.svg   single color
+  logo-horizontal-light.svg / -dark.svg   mark + name
+  banner-tv.svg             Android TV banner, 320×180
+  social-preview.svg        GitHub preview image, 1280×640
+png/        ready-to-use exports (icons 16–1024, logos, banner, favicon)
+android/res/  drop-in for app/src/main/res
 ```
 
-## Pasang di proyek Android
+## Installing into the Android project
 
-1. Salin isi `android/res/` ke `app/src/main/res/` (gabungkan folder).
-2. Di `AndroidManifest.xml`, pada `<application>`:
+1. Copy the contents of `android/res/` into `app/src/main/res/` (merge the folders).
+2. In `AndroidManifest.xml`, on `<application>`:
 
    ```xml
    android:icon="@mipmap/ic_launcher"
@@ -46,16 +46,16 @@ android/res/  drop-in untuk app/src/main/res
    android:banner="@drawable/tv_banner"
    ```
 
-3. `minSdk 23`: perangkat Android 7.x memakai PNG di `mipmap-*dpi`, Android 8+ memakai adaptive icon XML. Android 13+ otomatis memakai layer monochrome untuk ikon bertema.
-4. Banner TV harus berukuran 320×180 px di `drawable-xhdpi` dan memuat nama aplikasi. Itu sudah terpenuhi.
+3. `minSdk 23`: Android 7.x devices use the PNGs in `mipmap-*dpi`, Android 8+ uses the adaptive icon XML. Android 13+ automatically applies the monochrome layer for themed icons.
+4. The TV banner must be 320×180 px in `drawable-xhdpi` and include the app name. This is already satisfied.
 
-## Pemakaian
+## Usage
 
-- Beri ruang kosong di sekeliling logo minimal setinggi satu kotak kecil.
-- Jangan putar, regangkan, atau ganti warna kotak yang menyala. Cincin fokus selalu ada di kotak kanan atas.
-- Ukuran ikon minimum: 24 px. Di bawah itu pakai `mark-color.svg` tanpa latar.
-- Logo ini orisinal, bukan turunan merek lain.
+- Keep clear space around the logo of at least the height of one small tile.
+- Do not rotate, stretch, or recolor the lit tile. The focus ring always sits on the top-right tile.
+- Minimum icon size: 24 px. Below that, use `mark-color.svg` without a background.
+- The logo is original artwork, not derived from any other brand.
 
-## Lisensi
+## License
 
-Aset brand dilisensikan di bawah **CC BY 4.0** — lihat [LICENSE-ASSETS.md](LICENSE-ASSETS.md) untuk ketentuan lengkap dan cara atribusi. Kode program tetap di bawah GPL-3.0; kedua lisensi saling independen.
+The brand assets are licensed under **CC BY 4.0** — see [LICENSE-ASSETS.md](LICENSE-ASSETS.md) for full terms and attribution instructions. The program code remains under GPL-3.0; the two licenses are independent.
