@@ -3,17 +3,19 @@
 Static marketing and documentation site for BlueLauncher, built with [Astro](https://astro.build).
 No UI framework, no client-side routing, no third-party requests at runtime.
 
-Published as a GitHub Pages **project** page:
+Published to GitHub Pages with the custom domain:
 
-- <https://vryptt-ctrl.github.io/BlueLauncher/>
+- <https://bluelauncher.bond/>
+
+`public/CNAME` pins the domain; DNS points `bluelauncher.bond` at the Pages host.
 
 ## Commands
 
 ```sh
 npm ci          # install exact dependencies from package-lock.json
-npm run dev     # dev server on http://localhost:4321/BlueLauncher/
+npm run dev     # dev server on http://localhost:4321/
 npm run build   # static output in dist/
-npm run preview # serve dist/ on http://localhost:4321/BlueLauncher/
+npm run preview # serve dist/ on http://localhost:4321/
 npm run check   # astro check (types + templates)
 ```
 
@@ -44,9 +46,10 @@ site/
 
 ## Rules worth keeping
 
-- **Every internal link goes through `url()`** from `src/lib/url.ts`. The site is served from
-  `/BlueLauncher/`, so hardcoding `/install/` breaks the deploy. The same applies to `public/`
-  assets: use `url('/brand/icon.svg')`, never a bare path.
+- **Every internal link goes through `url()`** from `src/lib/url.ts`. The site currently serves
+  from the domain root; if a `base` is ever added to `astro.config.mjs`, `url()` applies it to
+  every href and `public/` asset reference in one place. Never hardcode an absolute path like
+  `/install/` in a template.
 - **Facts live in `src/data/` and `src/lib/site.ts`.** The version, SDK levels, NDK version, ABI
   table and changelog entries are mirrored from `app/build.gradle.kts`, `CHANGELOG.md` and
   `README.md`. Change those files first, then this copy.

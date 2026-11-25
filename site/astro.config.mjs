@@ -3,13 +3,13 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
 /**
- * GitHub Pages project site: https://vryptt-ctrl.github.io/BlueLauncher/
- * `base` must stay in sync with the repository name; every internal link is
- * built through `url()` in src/lib/url.ts so the prefix is never hardcoded.
+ * Published to GitHub Pages with the custom domain https://bluelauncher.bond/
+ * (a CNAME file in public/ keeps the domain binding across deploys). Internal
+ * links still go through `url()` in src/lib/url.ts so a future `base` change
+ * never requires touching templates.
  */
 export default defineConfig({
-  site: 'https://vryptt-ctrl.github.io',
-  base: '/BlueLauncher',
+  site: 'https://bluelauncher.bond',
   trailingSlash: 'always',
   output: 'static',
   integrations: [sitemap()],

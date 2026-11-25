@@ -1,10 +1,10 @@
 /**
  * Base-path aware link builder.
  *
- * The site is published as a GitHub Pages *project* page, so every internal
- * link starts with `/BlueLauncher/`. Astro exposes that prefix as
- * `import.meta.env.BASE_URL`; hardcoding it in templates breaks the moment the
- * repository is renamed, so all hrefs go through `url()`.
+ * The site is published at the root of the custom domain
+ * https://bluelauncher.bond (GitHub Pages + CNAME), so `BASE_URL` is `/` and
+ * links come out root-relative. The prefix still flows through `url()` so a
+ * future `base` in astro.config.mjs would apply everywhere at once.
  */
 const RAW_BASE = import.meta.env.BASE_URL || '/';
 const BASE = RAW_BASE.endsWith('/') ? RAW_BASE : `${RAW_BASE}/`;
@@ -17,9 +17,9 @@ function isAssetPath(path: string): boolean {
 }
 
 /**
- * `url('install/#adb')` → `/BlueLauncher/install/#adb`
- * `url('/')` → `/BlueLauncher/`
- * `url('/brand/icon.svg')` → `/BlueLauncher/brand/icon.svg`
+ * `url('install/#adb')` → `/install/#adb`
+ * `url('/')` → `/`
+ * `url('/brand/icon.svg')` → `/brand/icon.svg`
  */
 export function url(path = '/'): string {
   if (/^(https?:|mailto:|tel:)/.test(path)) return path;
@@ -31,7 +31,7 @@ export function url(path = '/'): string {
 
 /** Absolute URL for canonical tags and social metadata. */
 export function absoluteUrl(path = '/'): string {
-  const site = (import.meta.env.SITE || 'https://vryptt-ctrl.github.io').replace(/\/+$/, '');
+  const site = (import.meta.env.SITE || 'https://bluelauncher.bond').replace(/\/+$/, '');
   return `${site}${url(path)}`;
 }
 

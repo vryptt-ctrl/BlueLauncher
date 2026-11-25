@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vryptt-ctrl.github.io/BlueLauncher/sitemap-index.xml
+Sitemap: https://bluelauncher.bond/sitemap-index.xml

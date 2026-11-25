@@ -101,7 +101,7 @@ The Focus Grid brand assets — logo, icon set, TV banner and social preview —
 
 ## Website
 
-The marketing and documentation site lives in [`site/`](site/README.md). It is a static [Astro](https://astro.build) build published to GitHub Pages at <https://vryptt-ctrl.github.io/BlueLauncher/>; `.github/workflows/pages.yml` redeploys it on every push that touches `site/`. The site self-hosts Inter, makes no third-party requests and mirrors the facts in this README, `CHANGELOG.md` and `app/build.gradle.kts`.
+The marketing and documentation site lives in [`site/`](site/README.md). It is a static [Astro](https://astro.build) build published to GitHub Pages at <https://bluelauncher.bond/>; `.github/workflows/pages.yml` redeploys it on every push that touches `site/`. The site self-hosts Inter, makes no third-party requests and mirrors the facts in this README, `CHANGELOG.md` and `app/build.gradle.kts`.
 
 ## Contributing
 
