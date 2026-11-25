@@ -97,7 +97,7 @@ The only AndroidX artifact is `androidx.activity`, used for lifecycle-safe docum
 
 ## Branding
 
-The Focus Grid brand assets — logo, icon set, TV banner and social preview — live in [`brand/`](brand/README.md), including editable SVG sources. The logo is original artwork; its license may differ from the code license.
+The Focus Grid brand assets — logo, icon set, TV banner and social preview — live in [`brand/`](brand/README.md), including editable SVG sources, and are licensed under [CC BY 4.0](brand/LICENSE-ASSETS.md) (the code is GPL-3.0; the licenses are independent). The logo is original artwork.
 
 ## Contributing
 

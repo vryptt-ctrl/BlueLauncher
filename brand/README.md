@@ -54,4 +54,8 @@ android/res/  drop-in untuk app/src/main/res
 - Beri ruang kosong di sekeliling logo minimal setinggi satu kotak kecil.
 - Jangan putar, regangkan, atau ganti warna kotak yang menyala. Cincin fokus selalu ada di kotak kanan atas.
 - Ukuran ikon minimum: 24 px. Di bawah itu pakai `mark-color.svg` tanpa latar.
-- Logo ini orisinal, bukan turunan merek lain. Tentukan lisensi aset (misalnya CC BY 4.0) sebelum rilis publik. Lisensi GPL-3.0 pada kode tidak otomatis berlaku untuk logo.
+- Logo ini orisinal, bukan turunan merek lain.
+
+## Lisensi
+
+Aset brand dilisensikan di bawah **CC BY 4.0** — lihat [LICENSE-ASSETS.md](LICENSE-ASSETS.md) untuk ketentuan lengkap dan cara atribusi. Kode program tetap di bawah GPL-3.0; kedua lisensi saling independen.
