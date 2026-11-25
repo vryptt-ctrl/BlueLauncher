@@ -48,24 +48,51 @@ class LauncherViews(
         fun cycleCategory()
     }
 
-    val root = FrameLayout(context)
-    private val content = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-    private val hero = FrameLayout(context)
+    val root = FrameLayout(context).apply {
+        // Focus-scaled cards overshoot their bounds; every container in the card
+        // chain must allow the overflow or the top border gets clipped.
+        clipChildren = false
+        clipToPadding = false
+    }
+    private val content = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        clipChildren = false
+        clipToPadding = false
+    }
+    private val hero = FrameLayout(context).apply {
+        clipChildren = false
+        clipToPadding = false
+    }
     private val appsHeading = TextView(context)
     private val allAppsChip = heading()
     private val favoritesChip = heading()
     private val mediaChip = heading()
     private val gamesChip = heading()
-    private val appsStrip = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
+    private val appsStrip = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        clipChildren = false
+        clipToPadding = false
+    }
     private val appsScroll = horizontalScroll()
     private val favoritesTitle = heading()
-    private val favoritesStrip = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
+        private val favoritesStrip = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        clipChildren = false
+        clipToPadding = false
+    }
     private val favoritesScroll = horizontalScroll()
     private val recentTitle = heading()
-    private val recentStrip = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
+    private val recentStrip = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        clipChildren = false
+        clipToPadding = false
+    }
     private val recentScroll = horizontalScroll()
     private val searchBox = EditText(context)
-    private val searchPanel = FrameLayout(context)
+    private val searchPanel = FrameLayout(context).apply {
+        clipChildren = false
+        clipToPadding = false
+    }
     private val brand = TextView(context)
     private val searchChip = TextView(context)
     private val settingsChip = TextView(context)
@@ -481,7 +508,11 @@ class LauncherViews(
         }
         content.addView(searchPanel, TvUi.params(-1, dp(48), bottom = dp(12)))
 
-        val filters = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
+        val filters = LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            clipChildren = false
+            clipToPadding = false
+        }
         filters.addView(sectionHeading(appsHeading), LinearLayout.LayoutParams(0, dp(39), 1f))
         listOf(allAppsChip, favoritesChip, mediaChip, gamesChip).forEachIndexed { index, chip ->
             chip.apply {
@@ -822,7 +853,8 @@ class LauncherViews(
     }
 
     private fun horizontalScroll() = HorizontalScrollView(context).apply {
-        isHorizontalScrollBarEnabled = false; clipToPadding = false; overScrollMode = View.OVER_SCROLL_NEVER
+        isHorizontalScrollBarEnabled = false; clipToPadding = false; clipChildren = false
+        overScrollMode = View.OVER_SCROLL_NEVER
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS; isFocusable = false
     }
 
