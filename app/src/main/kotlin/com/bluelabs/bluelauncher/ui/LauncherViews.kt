@@ -1,8 +1,9 @@
 package com.bluelabs.bluelauncher.ui
 
-import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.text.InputType
@@ -10,6 +11,8 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -229,6 +232,70 @@ class LauncherViews(
         if (bitmap?.isRecycled == false) bitmap.recycle()
     }
 
+    /**
+     * Custom in-theme dialog panel: gradient card, accent stroke, spotlight focus.
+     * Replaces the platform AlertDialog so every surface follows the active palette.
+     */
+    private fun showPanelDialog(
+        title: String,
+        subtitle: String?,
+        content: View,
+        dismissAction: ((Dialog) -> Unit)? = null,
+    ): Dialog {
+        val panel = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(palette.surfaceRaised, palette.surface)).apply {
+                cornerRadius = dp(24).toFloat(); setStroke(1, palette.outline)
+            }
+            setPadding(dp(24), dp(18), dp(24), dp(18))
+        }
+        panel.addView(TextView(context).apply {
+            text = title; textSize = 19f; setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setTextColor(palette.text)
+        })
+        if (subtitle != null) {
+            panel.addView(TextView(context).apply {
+                text = subtitle; textSize = 12.5f; setTextColor(palette.muted)
+            }, TvUi.params(-2, -2, top = dp(4)))
+        }
+        panel.addView(View(context).apply { setBackgroundColor(palette.outline) }, TvUi.params(-1, dp(1), top = dp(12), bottom = dp(8)))
+        // Cap the scrollable body so long lists never push the Cancel button off-screen.
+        content.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val maxBodyHeight = (context.resources.displayMetrics.heightPixels * 0.62f).toInt()
+        panel.addView(content, LinearLayout.LayoutParams(-1, minOf(content.measuredHeight, maxBodyHeight).coerceAtLeast(dp(80))).apply { bottomMargin = dp(6) })
+        val cancelButton = TextView(context).apply {
+            text = context.getString(android.R.string.cancel); textSize = 13f; gravity = Gravity.CENTER
+            setPadding(dp(22), 0, dp(22), 0)
+            TvUi.setSelectableBackground(this, { palette }, 22f, pill = true)
+        }
+        panel.addView(cancelButton, TvUi.params(-2, dp(40), top = dp(10)))
+        val dialog = Dialog(context)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(panel)
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(0x99000000.toInt()))
+            setLayout((context.resources.displayMetrics.widthPixels * 0.56f).toInt().coerceAtMost(dp(560)), ViewGroup.LayoutParams.WRAP_CONTENT)
+            setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+        }
+        dialog.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+                dialog.dismiss(); true
+            } else false
+        }
+        dialog.show()
+        cancelButton.setOnClickListener { dismissAction?.invoke(dialog) }
+        cancelButton.requestFocus()
+        return dialog
+    }
+
+    /** Dialog-wide list option row: check mark + label with a selectable focus card. */
+    private fun panelOption(label: String, selected: Boolean, action: () -> Unit) = TextView(context).apply {
+        text = if (selected) "✓   $label" else "     $label"
+        textSize = 13.5f; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(14), 0, dp(14), 0)
+        setTextColor(if (selected) palette.accentBright else palette.text)
+        TvUi.setSelectableBackground(this, { palette }, 13f); setOnClickListener { action() }
+    }
+
     fun showSettings(
         onWallpaper: (String) -> Unit,
         onSections: (Boolean, Boolean) -> Unit,
@@ -280,9 +347,12 @@ class LauncherViews(
         page.addView(settingsOption(context.getString(R.string.reset_layout), false, onReset), TvUi.params(-1, dp(40), top = dp(10)))
         page.addView(settingsOption(context.getString(R.string.about_diagnostics), false, onAbout), TvUi.params(-1, dp(40), top = dp(2)))
         val scroll = ScrollView(context).apply { isFillViewport = true; addView(page) }
-        AlertDialog.Builder(context).setTitle(context.getString(R.string.settings_title))
-            .setMessage(context.getString(R.string.settings_subtitle)).setView(scroll)
-            .setNegativeButton(android.R.string.cancel, null).show()
+        showPanelDialog(
+            title = context.getString(R.string.settings_title),
+            subtitle = context.getString(R.string.settings_subtitle),
+            content = scroll,
+            dismissAction = { dialog -> dialog.dismiss() },
+        )
     }
 
     private fun divider() = View(context).apply { setBackgroundColor(palette.outline) }
@@ -294,9 +364,16 @@ class LauncherViews(
     }
 
     fun showAbout() {
-        AlertDialog.Builder(context).setTitle(context.getString(R.string.about_title))
-            .setMessage(context.getString(R.string.about_message, diagnostics?.invoke().orEmpty()))
-            .setPositiveButton(android.R.string.ok, null).show()
+        val message = TextView(context).apply {
+            text = context.getString(R.string.about_message, diagnostics?.invoke().orEmpty())
+            textSize = 13f; setTextColor(palette.text); setLineSpacing(dp(3).toFloat(), 1f)
+        }
+        showPanelDialog(
+            title = context.getString(R.string.about_title),
+            subtitle = null,
+            content = message,
+            dismissAction = { dialog -> dialog.dismiss() },
+        )
     }
 
     fun showLaunchError() {
@@ -553,20 +630,18 @@ class LauncherViews(
                     callbacks.toggleFavorite(app)
                     return@setOnLongClickListener true
                 }
-                AlertDialog.Builder(context).setTitle(app.label)
-                    .setItems(
-                        arrayOf(
-                            context.getString(R.string.remove_favorite),
-                            context.getString(R.string.move_toward_start),
-                            context.getString(R.string.move_toward_end),
-                        ),
-                    ) { _, which ->
-                        when (which) {
-                            0 -> callbacks.toggleFavorite(app)
-                            1 -> callbacks.reorderApp(app, -1)
-                            else -> callbacks.reorderApp(app, 1)
-                        }
-                    }.show()
+                val options = listOf(
+                    context.getString(R.string.remove_favorite) to { callbacks.toggleFavorite(app) },
+                    context.getString(R.string.move_toward_start) to { callbacks.reorderApp(app, -1) },
+                    context.getString(R.string.move_toward_end) to { callbacks.reorderApp(app, 1) },
+                )
+                var heldDialog: Dialog? = null
+                val menu = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+                options.forEach { (label, action) ->
+                    menu.addView(panelOption(label, false) { heldDialog?.dismiss(); action() },
+                        TvUi.params(-1, dp(42), bottom = dp(2)))
+                }
+                heldDialog = showPanelDialog(title = app.label, subtitle = null, content = menu)
                 true
             }
             setOnKeyListener { _, keyCode, event ->
