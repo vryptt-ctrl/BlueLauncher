@@ -27,6 +27,35 @@ const {
 const fullTitle = bare ? title : `${title} · ${SITE.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = absoluteUrl(SITE.ogImage);
+
+/** Factual Schema.org graph: one WebSite node plus one SoftwareApplication node. */
+const schema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${Astro.site?.href.replace(/\/+$/, '')}/#website`,
+      name: SITE.name,
+      url: Astro.site?.href,
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: SITE.name,
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: `Android TV, Android ${SITE.minSdk}+`,
+      softwareVersion: SITE.version,
+      description: SITE.description,
+      url: Astro.site?.href,
+      downloadUrl: SITE.releases,
+      isAccessibleForFree: true,
+      license: 'https://spdx.org/licenses/GPL-3.0.html',
+      author: { '@type': 'Organization', name: 'BlueLauncher contributors', url: SITE.repo },
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      screenshot: ogImage,
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -37,6 +66,8 @@ const ogImage = absoluteUrl(SITE.ogImage);
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="en" href={canonical} />
+    <link rel="alternate" hreflang="x-default" href={canonical} />
     <meta name="theme-color" content="#070B14" />
     <meta name="color-scheme" content="dark" />
 
@@ -57,6 +88,8 @@ const ogImage = absoluteUrl(SITE.ogImage);
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
