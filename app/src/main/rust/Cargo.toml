@@ -1,0 +1,19 @@
+[package]
+name = "blue-launcher-native"
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "blue_launcher"
+crate-type = ["cdylib"]
+
+[dependencies]
+jni = { version = "0.21.1", default-features = false }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "symbols"

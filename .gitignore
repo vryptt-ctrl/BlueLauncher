@@ -1,0 +1,52 @@
+# Built artifacts
+build/
+**/build/
+app/build/
+app/release/
+
+# Gradle
+.gradle/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+build-cache/
+
+# Kotlin
+.kotlin/
+
+# Rust
+**/target/
+**/*.rs.bk
+Cargo.lock.orig
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & crash dumps
+*.log
+hs_err_pid*
+replay_pid*
+
+# Keystores — never commit signing material
+*.jks
+*.keystore
+keystore.properties
+
+# Screenshots & test artifacts
+app/build/screenshots/
+
+# Environment
+.env
