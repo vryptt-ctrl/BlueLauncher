@@ -853,7 +853,12 @@ class LauncherViews(
     }
 
     private fun horizontalScroll() = HorizontalScrollView(context).apply {
-        isHorizontalScrollBarEnabled = false; clipToPadding = false; clipChildren = false
+        // Bounds clipping stays ON so offscreen cards are neither drawn over
+        // neighbouring rows nor rendered at all; clipToPadding=false plus the
+        // small top padding gives the focus-scaled card headroom to overflow
+        // vertically without being cut off.
+        isHorizontalScrollBarEnabled = false; clipToPadding = false
+        setPadding(0, dp(6), 0, 0)
         overScrollMode = View.OVER_SCROLL_NEVER
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS; isFocusable = false
     }
