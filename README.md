@@ -5,6 +5,10 @@
 [![Release](https://img.shields.io/github/v/release/vryptt-ctrl/BlueLauncher)](https://github.com/vryptt-ctrl/BlueLauncher/releases)
 [![Platform](https://img.shields.io/badge/platform-Android%20TV-3DDC84)](https://developer.android.com/tv)
 
+<p align="center">
+  <img src="brand/logo-horizontal-dark.png" alt="BlueLauncher logo" width="360">
+</p>
+
 A deliberately small, native Android TV home launcher: Kotlin owns the Android lifecycle, package discovery, D-pad UI and preferences; a compact Rust/JNI module ranks and searches apps. There are no network calls, analytics, ads, database, Compose runtime, periodic services or large UI framework.
 
 ## Highlights
@@ -14,6 +18,14 @@ A deliberately small, native Android TV home launcher: Kotlin owns the Android l
 - **Native core**: Rust ranking/search via JNI, with an automatic Kotlin fallback.
 - **TV-first**: full D-pad navigation, focus lift + glow, spotlight pills, poster-style app cards.
 - **Personal**: ordered favorites, bounded recents with one-click resume, category filters, three dark themes, custom image wallpaper, clock/date options.
+
+## Screenshots
+
+| Home | Search |
+| --- | --- |
+| ![Home screen](docs/screenshots/home.png) | ![Search results](docs/screenshots/search.png) |
+| **Favorites & recents** | **Settings** |
+| ![Favorites](docs/screenshots/favorites.png) | ![Settings dialog](docs/screenshots/settings.png) |
 
 ## Features
 
@@ -82,6 +94,10 @@ adb shell cmd package set-home-activity com.bluelabs.bluelauncher/.MainActivity
 - `proguard-rules.pro` — keeps the JNI entry points alive through R8.
 
 The only AndroidX artifact is `androidx.activity`, used for lifecycle-safe document-picker results and predictive-back handling. Dialogs use the platform `AlertDialog`; all home UI is programmatic platform Views.
+
+## Branding
+
+The Focus Grid brand assets — logo, icon set, TV banner and social preview — live in [`brand/`](brand/README.md), including editable SVG sources. The logo is original artwork; its license may differ from the code license.
 
 ## Contributing
 
