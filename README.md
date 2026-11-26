@@ -103,6 +103,14 @@ The Focus Grid brand assets — logo, icon set, TV banner and social preview —
 
 The marketing and documentation site lives in [`site/`](site/README.md). It is a static [Astro](https://astro.build) build published to GitHub Pages at <https://bluelauncher.bond/>; `.github/workflows/pages.yml` redeploys it on every push that touches `site/`. The site self-hosts Inter, makes no third-party requests and mirrors the facts in this README, `CHANGELOG.md` and `app/build.gradle.kts`.
 
+## F-Droid
+
+BlueLauncher is ready to be built by F-Droid:
+- Build metadata: [`.fdroid.yml`](.fdroid.yml) (for local testing via `fdroid build --test`) and [`fdroiddata/com.bluelabs.bluelauncher.yml`](fdroiddata/com.bluelabs.bluelauncher.yml) (to submit to [fdroiddata](https://gitlab.com/fdroid/fdroiddata)).
+- Store listing texts and graphics: [`fastlane/metadata/android/en-US/`](fastlane/metadata/android/en-US/).
+- **Signing note**: Builds from F-Droid are built from source and signed with F-Droid's own signing key. If you are switching between a GitHub release APK and an F-Droid build, you will need to uninstall the old build first because the signing signatures differ.
+- For maintainers submitting the initial package, see the instructions in [`fdroiddata/README.md`](fdroiddata/README.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests are welcome through [issue templates](.github/ISSUE_TEMPLATE); pull requests should follow the [PR template](.github/PULL_REQUEST_TEMPLATE.md).

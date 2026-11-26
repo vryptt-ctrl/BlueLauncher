@@ -1,0 +1,7 @@
+The About panel now shows the installed version.
+Fixed app cards painting over the screen gutter while a row scrolls.
+The focused card keeps its full accent stroke at both ends of every row.
+"Large app cards" no longer clips the focused card's bottom stroke.
+Focus is restored after a row is rebuilt and never leaves the row at either end.
+The first Down press from the root view now lands on the main apps row.
+Focused cards stay fully on screen vertically, including their focus glow.

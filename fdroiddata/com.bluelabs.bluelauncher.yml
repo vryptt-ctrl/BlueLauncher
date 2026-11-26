@@ -1,0 +1,97 @@
+# Copy this file to metadata/com.bluelabs.bluelauncher.yml in a fork of
+# https://gitlab.com/fdroid/fdroiddata and open a merge request.
+#
+# Keep it in sync with .fdroid.yml and app/build.gradle.kts. The Summary and
+# Description below are duplicated from fastlane/metadata/android/en-US
+# because version 1.1.1 was tagged before that folder existed (see
+# MaintainerNotes). Remove them again once a release containing fastlane/
+# has been built.
+Categories:
+  - Launcher
+License: GPL-3.0-only
+WebSite: https://bluelauncher.bond
+SourceCode: https://github.com/vryptt-ctrl/BlueLauncher
+IssueTracker: https://github.com/vryptt-ctrl/BlueLauncher/issues
+Changelog: https://github.com/vryptt-ctrl/BlueLauncher/blob/HEAD/CHANGELOG.md
+
+AutoName: BlueLauncher
+
+Summary: Lightweight TV launcher with D-pad focus, favorites and Rust search
+
+Description: |
+  BlueLauncher is a small, native home screen replacement for Android TV. Kotlin runs the Android lifecycle, app discovery, D-pad UI and preferences, while a compact Rust module ranks and searches apps through JNI. There are no network calls, analytics, ads, trackers, databases or background services.
+
+  <b>Fast</b>
+  The interface uses platform Views instead of Compose, RecyclerView or Leanback, so the home screen is ready in about 160 ms on modest TV hardware.
+
+  <b>Light</b>
+  The debug APK is about 3.9 MB with three ABIs; release builds are R8-shrunk below 1.2 MB.
+
+  <b>Built for the remote</b>
+  Every row, chip and dialog is reachable with the D-pad. Cards lift and glow on focus, rows keep their accent strokes and fading edges while scrolling, and focus returns to the same app after a row is rebuilt.
+
+  <b>Features</b>
+  <ul>
+  <li>Registers both Leanback and standard Home intents, so it can replace the built-in TV launcher</li>
+  <li>Discovers TV and regular launcher apps through scoped package visibility</li>
+  <li>Ordered favorites, bounded recents with one-tap resume, and category filters</li>
+  <li>Rust-backed search ranking with an automatic Kotlin fallback</li>
+  <li>Adjustable card size and labels, three dark themes, clock and date options</li>
+  <li>Custom wallpaper imported with the system document picker and kept in app-private storage</li>
+  </ul>
+
+  <b>Privacy</b>
+  BlueLauncher declares no network permission. App lists, favorites, history and wallpaper stay on the device.
+
+  <b>Compatibility</b>
+  Android 6.0 and newer. ARM64, ARMv7 and x86_64 builds include the native ranking module; other ABIs fall back to Kotlin. This is a TV-first launcher: phone and Wear interfaces are not provided.
+
+  <b>Licence</b>
+  The source code is licensed under GPL-3.0. The Focus Grid brand assets (logo, launcher icons and banner) are licensed separately under CC BY 4.0 by the BlueLauncher contributors.
+
+  Source code and issues: https://github.com/vryptt-ctrl/BlueLauncher
+  Website: https://bluelauncher.bond
+
+RepoType: git
+Repo: https://github.com/vryptt-ctrl/BlueLauncher.git
+
+Builds:
+  - versionName: 1.1.1
+    versionCode: 3
+    commit: v1.1.1
+    ndk: 27.2.12479018
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
+    prebuild:
+      - curl -fsSL --proto '=https' --tlsv1.2 -o $HOME/rustup-init https://static.rust-lang.org/rustup/archive/1.29.3/x86_64-unknown-linux-gnu/rustup-init
+      - echo "b1c8cb14e30889e7e2999e6b69e62d9e9b9ffc0f4df8180564d306d9680e6c55  $HOME/rustup-init" | sha256sum --check --strict
+      - chmod +x $HOME/rustup-init
+      - $HOME/rustup-init -y --no-modify-path --profile minimal --default-toolchain 1.100.0
+      - $HOME/.cargo/bin/rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+    build:
+      - export PATH="$HOME/.cargo/bin:$PATH"
+      - export ANDROID_NDK_HOME=$$NDK$$
+      - gradle assembleRelease
+
+MaintainerNotes: |
+  Raw "build:" is used instead of "gradle:" because fdroidserver removes
+  gradlew/gradlew.bat and the Rust toolchain must be on PATH for the Gradle
+  build. "gradle" on the build server is gradlew-fdroid, which reads
+  gradle/wrapper/gradle-wrapper.properties (Gradle 9.6.0).
+
+  prebuild installs Rust 1.100.0 through rustup from a checksum-pinned
+  rustup-init; the NDK is provided by "ndk:" and used for the Cargo linkers.
+
+  No Binaries: entry: the GitHub release APK is not bit-for-bit reproducible
+  across build hosts (Rust/AGP toolchains), so F-Droid signs its own build.
+  Users switching from the GitHub APK must uninstall it first.
+
+  fastlane/metadata/android/en-US/ landed after v1.1.1 was tagged, so F-Droid
+  cannot read it for this build and only the Summary/Description above are
+  shown. The next tagged release will pick up the icon, feature graphic, TV
+  screenshots and changelog from the repo; delete Summary and Description
+  from this file at that point.
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.1.1
+CurrentVersionCode: 3

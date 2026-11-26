@@ -1,0 +1,32 @@
+BlueLauncher is a small, native home screen replacement for Android TV. Kotlin runs the Android lifecycle, app discovery, D-pad UI and preferences, while a compact Rust module ranks and searches apps through JNI. There are no network calls, analytics, ads, trackers, databases or background services.
+
+<b>Fast</b>
+The interface uses platform Views instead of Compose, RecyclerView or Leanback, so the home screen is ready in about 160 ms on modest TV hardware.
+
+<b>Light</b>
+The debug APK is about 3.9 MB with three ABIs; release builds are R8-shrunk below 1.2 MB.
+
+<b>Built for the remote</b>
+Every row, chip and dialog is reachable with the D-pad. Cards lift and glow on focus, rows keep their accent strokes and fading edges while scrolling, and focus returns to the same app after a row is rebuilt.
+
+<b>Features</b>
+<ul>
+<li>Registers both Leanback and standard Home intents, so it can replace the built-in TV launcher</li>
+<li>Discovers TV and regular launcher apps through scoped package visibility</li>
+<li>Ordered favorites, bounded recents with one-tap resume, and category filters</li>
+<li>Rust-backed search ranking with an automatic Kotlin fallback</li>
+<li>Adjustable card size and labels, three dark themes, clock and date options</li>
+<li>Custom wallpaper imported with the system document picker and kept in app-private storage</li>
+</ul>
+
+<b>Privacy</b>
+BlueLauncher declares no network permission. App lists, favorites, history and wallpaper stay on the device.
+
+<b>Compatibility</b>
+Android 6.0 and newer. ARM64, ARMv7 and x86_64 builds include the native ranking module; other ABIs fall back to Kotlin. This is a TV-first launcher: phone and Wear interfaces are not provided.
+
+<b>Licence</b>
+The source code is licensed under GPL-3.0. The Focus Grid brand assets (logo, launcher icons and banner) are licensed separately under CC BY 4.0 by the BlueLauncher contributors.
+
+Source code and issues: https://github.com/vryptt-ctrl/BlueLauncher
+Website: https://bluelauncher.bond
