@@ -17,7 +17,7 @@ This folder contains the ready-to-submit metadata files and instructions for pub
    - `title.txt` — App name (≤ 50 chars)
    - `short_description.txt` — Summary (≤ 80 chars)
    - `full_description.txt` — Long description with allowed HTML (≤ 4000 chars)
-   - `changelogs/3.txt` — What's new for version code 3 / 1.1.1 (≤ 500 chars)
+   - `changelogs/3.txt`, `changelogs/4.txt` — What's new per version code (≤ 500 chars)
    - `images/icon.png` — 512×512 square store icon
    - `images/featureGraphic.png` — 1280×640 feature graphic
    - `images/tvScreenshots/` — 1920×1080 Android TV screenshots (1.png to 4.png)

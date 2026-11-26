@@ -17,9 +17,43 @@ export type Release = {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.2',
+    date: '2026-11-26',
+    latest: true,
+    summary:
+      'Reliability pass over the interactive surfaces: panels always close, settings toggles repaint immediately, icon labels no longer render as tofu, imported wallpapers are cropped and pruned, and filters no longer misclassify system TV apps.',
+    groups: [
+      {
+        kind: 'Fixed',
+        items: [
+          'A settings or long-press panel now always dismisses. A panel whose caller passed no dismiss action used to fade out but leave its invisible scrim attached, swallowing every key press.',
+          'Settings rows repaint immediately after a toggle: the check mark and accent colour are read back from the live preference instead of being painted once when the panel opened.',
+          'Icon and text share a label again. Only the private-use glyph codepoints use the bundled symbol font and the words stay in Inter, so headings and chips no longer show tofu boxes.',
+          'Typing in search no longer replays the card entrance animation on every keystroke.',
+          'Imported wallpapers are center-cropped to the screen aspect when drawn, and each import deletes the previous JPEG. Switching back to a built-in wallpaper removes the imported file.',
+          'The resume badge no longer points at whatever survived the current search or category filter; the target is resolved against every installed app.',
+          'Reordering a pinned favourite no longer drops pins whose app is temporarily uninstalled, and it swaps slots so a hidden pin keeps its position.',
+          'The Media category no longer swallows the system TV settings and the remote; hints match the package name only.',
+          'The resume badge pulse runs a fixed number of breaths and stops on pause, instead of invalidating the view forever.',
+          'Hero decoration repaints after a theme change, and the selected category chip keeps its fill when the cursor moves away.',
+          'A package install or update no longer steals focus out of the search box, and pressing Home again only rescans when something changed.',
+          'The clock keeps the system’s own 24-hour pattern, so locales that use a separator such as “HH.mm” still look native.',
+          'The native search library degrades to the Kotlin fallback on any load failure, and labels containing tabs or newlines no longer corrupt the JNI payload.',
+          'Release builds use the real bundled Inter 700 and 300 weights instead of synthesised bold and a 400 substitute.',
+        ],
+      },
+      {
+        kind: 'Changed',
+        items: [
+          'Renders triggered from the settings panel, from launching an app, or from a palette change skip the grid entrance animation.',
+          'Dead code and one unused string were removed, and the docs describe the custom Dialog panels rather than the platform AlertDialog.',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.1.1',
     date: '2026-11-25',
-    latest: true,
     summary:
       'Focus and layout fixes: rows stay inside their viewport, the focused card keeps its full accent stroke at both ends, and D-pad focus no longer jumps between rows.',
     groups: [

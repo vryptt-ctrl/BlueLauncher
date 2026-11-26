@@ -4,6 +4,8 @@ All notable changes to BlueLauncher are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-11-26
+
 ### Fixed
 - A settings or long-press panel now always dismisses; a panel whose caller passed no dismiss action used to fade out but leave its invisible scrim attached, swallowing every key press.
 - Settings rows repaint immediately after a toggle: the check mark and accent colour are read back from the live preference instead of being painted once when the panel opened.
@@ -76,7 +78,8 @@ All notable changes to BlueLauncher are documented in this file. The format foll
 - Focus animation adds translation-Z lift (6dp) and glow-tinted spot shadow (API 28+).
 - Settings dialog sections use uppercase kickers and hairline dividers.
 
-[Unreleased]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/vryptt-ctrl/BlueLauncher/releases/tag/v1.0.0

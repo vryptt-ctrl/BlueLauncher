@@ -19,9 +19,9 @@ RepoType: git
 Repo: https://github.com/vryptt-ctrl/BlueLauncher.git
 
 Builds:
-  - versionName: 1.1.1
-    versionCode: 3
-    commit: b4ce7bb7c08b1ef9dce36cafe310cd7ad002d786
+  - versionName: 1.1.2
+    versionCode: 4
+    commit: 029258993ee5c6db079e15c94acaeb43957788f1
     sudo:
       - apt-get update
       - apt-get install -y --no-install-recommends gcc libc-dev
@@ -40,5 +40,5 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.1.1
-CurrentVersionCode: 3
+CurrentVersion: 1.1.2
+CurrentVersionCode: 4

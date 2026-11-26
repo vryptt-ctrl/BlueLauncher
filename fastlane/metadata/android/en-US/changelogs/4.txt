@@ -1,0 +1,7 @@
+Panels and settings always respond: panels always close and toggles update immediately.
+Icon labels render correctly again, icon glyph plus words in the brand font.
+Search no longer flickers while typing.
+Imported wallpapers are cropped to the screen and old imports are deleted.
+The resume button always offers the last app you opened.
+Pinned favorites keep their position; the Media filter no longer includes TV settings.
+Installing an app no longer takes focus from the search box.

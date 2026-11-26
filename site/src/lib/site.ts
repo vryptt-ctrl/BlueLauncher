@@ -9,11 +9,11 @@ export const SITE = {
   tagline: 'A small, offline home screen for Android TV.',
   description:
     'Free, open-source Android TV home launcher. Kotlin UI, Rust-ranked app search, fully offline — no ads, no analytics, no network permission.',
-  version: '1.1.1',
-  versionDate: '2026-11-25',
-  releaseDate: '2026-11-25',
+  version: '1.1.2',
+  versionDate: '2026-11-26',
+  releaseDate: '2026-11-26',
   /** APK attached to the latest GitHub release, and its measured size. */
-  releaseApk: 'BlueLauncher-v1.1.1-release.apk',
+  releaseApk: 'BlueLauncher-v1.1.2-release.apk',
   releaseApkSize: 'about 1.2 MB',
   /** Debug build: all three ABIs, unshrunk. */
   debugApkSize: 'about 3.9 MB',

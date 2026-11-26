@@ -46,9 +46,9 @@ RepoType: git
 Repo: https://github.com/vryptt-ctrl/BlueLauncher.git
 
 Builds:
-  - versionName: 1.1.1
-    versionCode: 3
-    commit: b4ce7bb7c08b1ef9dce36cafe310cd7ad002d786
+  - versionName: 1.1.2
+    versionCode: 4
+    commit: 029258993ee5c6db079e15c94acaeb43957788f1
     sudo:
       - apt-get update
       - apt-get install -y --no-install-recommends gcc libc-dev
@@ -84,12 +84,11 @@ MaintainerNotes: |-
   across build hosts (Rust/AGP toolchains), so F-Droid signs its own build.
   Users switching from the GitHub APK must uninstall it first.
 
-  fastlane/metadata/android/en-US/ landed after v1.1.1 was tagged, so F-Droid
-  cannot read it for this build and only the Description and localized summary
-  are shown. The next tagged release will pick up the icon, feature graphic, TV
-  screenshots and changelog from the repo.
+  fastlane/metadata/android/en-US/ landed after v1.1.1 was tagged, so that
+  build could not use it. v1.1.2 is tagged after it, so F-Droid picks up the
+  icon, feature graphic, TV screenshots and changelogs/4.txt from the repo.
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.1.1
-CurrentVersionCode: 3
+CurrentVersion: 1.1.2
+CurrentVersionCode: 4

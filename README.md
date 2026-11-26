@@ -64,7 +64,7 @@ export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
 
 The debug APK is `app/build/outputs/apk/debug/app-debug.apk` (about 3.9 MB with all three ABIs). `assembleRelease` runs R8 and resource shrinking and produces an unsigned APK; add a private signing config before distributing it. Published release APKs on the [releases page](https://github.com/vryptt-ctrl/BlueLauncher/releases) are signed and zipaligned by the maintainer — the signing key itself is not in the repository.
 
-Unit tests cover the pure preference and category logic (`LauncherPreferences.mergeOrder`, `moveWithin`, recent-history bounding and category filters) and run on the JVM without Robolectric. Run native scorer tests with:
+Unit tests cover the pure preference, category and label-splitting logic (`LauncherPreferences.mergeOrder`, `moveFavoriteIn`, recent-history bounding, category filters and `TvUi.glyphRuns`) and run on the JVM without Robolectric. Run native scorer tests with:
 
 ```sh
 cargo test --manifest-path app/src/main/rust/Cargo.toml
