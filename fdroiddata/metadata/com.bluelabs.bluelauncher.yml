@@ -1,6 +1,7 @@
 Categories:
   - Launcher
 License: GPL-3.0-only
+AuthorName: Vrypt
 WebSite: https://bluelauncher.bond
 SourceCode: https://github.com/vryptt-ctrl/BlueLauncher
 IssueTracker: https://github.com/vryptt-ctrl/BlueLauncher/issues
@@ -47,7 +48,7 @@ Repo: https://github.com/vryptt-ctrl/BlueLauncher.git
 Builds:
   - versionName: 1.1.1
     versionCode: 3
-    commit: v1.1.1
+    commit: b4ce7bb7c08b1ef9dce36cafe310cd7ad002d786
     sudo:
       - apt-get update
       - apt-get install -y --no-install-recommends gcc libc-dev
