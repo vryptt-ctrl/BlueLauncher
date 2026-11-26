@@ -1,4 +1,5 @@
 /** Install, build and architecture copy. Commands are copied from README.md. */
+import { SITE } from '@/lib/site';
 
 export type Step = {
   title: string;
@@ -11,13 +12,13 @@ export type Step = {
 export const INSTALL_STEPS: Step[] = [
   {
     title: 'Get the APK',
-    body: 'Download the latest release build from GitHub. Release builds are R8-shrunk and unsigned — the repository ships no production signing key, so install through adb or sideload as you prefer.',
+    body: `Download the latest release build from GitHub — ${SITE.releaseApkSize}, R8-shrunk and signed by the maintainer. Install it over adb or sideload it from a file manager, whichever your TV allows.`,
     note: 'Android 6.0 (API 23) and newer. ARM64, ARMv7 and x86_64 are packaged.',
   },
   {
     title: 'Install over adb',
-    body: 'Connect to the TV over the network or USB, then install the APK.',
-    code: 'adb install -r app-debug.apk',
+    body: 'Connect to the TV over the network or USB, then install the downloaded APK.',
+    code: `adb install -r ${SITE.releaseApk}`,
     lang: 'shell',
   },
   {
@@ -31,7 +32,7 @@ export const INSTALL_STEPS: Step[] = [
 export const INSTALL_TROUBLESHOOTING = [
   {
     title: 'The installer rejects the APK',
-    body: 'Release builds are unsigned. Either build a signed variant yourself with a private signing config, or install the debug APK, which is signed with the standard debug key.',
+    body: 'Check that the file downloaded completely and that you are on Android 6.0 (API 23) or newer. If your device blocks sideloaded packages, allow installs from unknown sources for the file manager or adb session you are using.',
   },
   {
     title: 'The TV does not list BlueLauncher as a home app',
@@ -69,7 +70,7 @@ export const BUILD_PREREQS = [
 export const GRADLE_COMMANDS = [
   {
     command: '.\\gradlew.bat assembleDebug',
-    note: 'Windows — debug APK with all three ABIs (~3.9 MB).',
+    note: `Windows — debug APK with all three ABIs (${SITE.debugApkSize}).`,
   },
   {
     command: './gradlew assembleDebug testDebugUnitTest lintDebug',

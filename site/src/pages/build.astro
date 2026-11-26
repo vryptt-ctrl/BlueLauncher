@@ -1,5 +1,6 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import SectionHead from '@/components/SectionHead.astro';
 import SpecTable from '@/components/SpecTable.astro';
 import CodeBlock from '@/components/CodeBlock.astro';
@@ -7,6 +8,14 @@ import StepList from '@/components/StepList.astro';
 import Button from '@/components/Button.astro';
 import { BUILD_PREREQS, GRADLE_COMMANDS, ABI_TABLE } from '@/data/content';
 import { SITE } from '@/lib/site';
+
+const crumbs = [{ name: 'Build from source', path: '/build/' }];
+const keywords = [
+  'build Android TV launcher',
+  'Gradle Rust Android NDK',
+  'assembleRelease signing config',
+  'Kotlin Rust JNI Android',
+];
 
 const steps = [
   {
@@ -30,23 +39,27 @@ const steps = [
 ];
 
 const releaseNotes = [
-  'assembleRelease runs R8 and resource shrinking and produces an unsigned APK.',
-  'Add a private signingConfig before distributing — the repository ships no signing key.',
+  `assembleRelease runs R8 and resource shrinking and produces an unsigned APK (${SITE.releaseApkSize}).`,
+  'Add a private signingConfig to sign that APK with your own keystore — the repository ships no signing key.',
+  'Published release APKs are zipaligned and signed by the maintainer, so they install without extra steps.',
   'Unit tests cover the pure preference and category logic on the JVM, without Robolectric.',
 ];
 ---
 
 <Base
   title="Build from source"
-  description="Build BlueLauncher yourself: JDK 17, Android SDK Platform 36, NDK 27.2.12479018 and three Rust targets."
+  description="Build the BlueLauncher APK yourself: JDK 17, Android SDK Platform 36, NDK 27.2.12479018 and three Rust targets, then assemble and sign a release."
+  keywords={keywords}
+  breadcrumb={crumbs}
 >
   <div class="page-intro">
     <p class="kicker">Build</p>
-    <h1 class="display page-intro__title">Build from source</h1>
+    <h1 class="display page-intro__title">Build BlueLauncher from source</h1>
     <p class="lede">
       The Gradle build drives Cargo for every packaged ABI. You need the NDK once, and three
       installed Rust targets.
     </p>
+    <Breadcrumbs items={crumbs} />
     <div class="cluster page-intro__actions">
       <Button href={SITE.repo} external icon="github">Open the repository</Button>
       <Button href={SITE.contributing} external variant="secondary" icon="code"
@@ -106,8 +119,10 @@ const releaseNotes = [
     <div class="notice">
       <h2 class="h3">Output locations</h2>
       <p class="muted">
-        The debug APK lands at <code>app/build/outputs/apk/debug/app-debug.apk</code> — about 3.9 MB with
-        all three ABIs. Native libraries are compiled into
+        The debug APK lands at <code>app/build/outputs/apk/debug/app-debug.apk</code> —
+        {SITE.debugApkSize} with all three ABIs. <code>assembleRelease</code> writes
+        <code>app/build/outputs/apk/release/app-release-unsigned.apk</code>, which needs your own
+        signing config before it will install. Native libraries are compiled into
         <code>app/build/rust-jni/&lt;abi&gt;/libblue_launcher.so</code> before packaging.
       </p>
     </div>

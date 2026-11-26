@@ -1,9 +1,18 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import Button from '@/components/Button.astro';
 import Icon from '@/components/Icon.astro';
 import { RELEASES } from '@/data/changelog';
 import { SITE } from '@/lib/site';
+
+const crumbs = [{ name: 'Changelog', path: '/changelog/' }];
+const keywords = [
+  'BlueLauncher release notes',
+  'Android TV launcher changelog',
+  'Keep a Changelog',
+];
+const latestDate = RELEASES[0]?.date;
 
 const kindLabel: Record<string, string> = {
   Added: 'Added',
@@ -14,12 +23,15 @@ const kindLabel: Record<string, string> = {
 ---
 
 <Base
-  title="Changelog"
-  description="Release notes for BlueLauncher, following Keep a Changelog and Semantic Versioning."
+  title="Changelog and release notes"
+  description={`BlueLauncher release notes, newest first: every Added, Changed, Fixed and Removed entry from v${RELEASES[0]?.version} back to v${RELEASES[RELEASES.length - 1]?.version}, in Keep a Changelog format.`}
+  keywords={keywords}
+  breadcrumb={crumbs}
+  updated={latestDate}
 >
   <div class="page-intro">
     <p class="kicker">Changelog</p>
-    <h1 class="display page-intro__title">Changelog</h1>
+    <h1 class="display page-intro__title">BlueLauncher changelog</h1>
     <p class="lede">
       The format follows Keep a Changelog and the project uses Semantic Versioning. The canonical
       file lives in the repository.
@@ -30,6 +42,7 @@ const kindLabel: Record<string, string> = {
       </Button>
       <Button href={SITE.allReleases} external icon="github">All GitHub releases</Button>
     </div>
+    <Breadcrumbs items={crumbs} />
   </div>
 
   <div class="timeline">

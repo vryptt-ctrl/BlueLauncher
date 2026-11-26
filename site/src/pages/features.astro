@@ -1,5 +1,6 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import SectionHead from '@/components/SectionHead.astro';
 import FeatureCard from '@/components/FeatureCard.astro';
 import SpecTable from '@/components/SpecTable.astro';
@@ -11,16 +12,28 @@ import type { IconName } from '@/data/icons';
 import { SITE } from '@/lib/site';
 import { url } from '@/lib/url';
 
-const title = 'Features';
+const title = 'Android TV launcher features';
 const description =
-  'Rust-ranked search, ordered favorites, bounded recents, category filters and three dark themes — all local, all offline.';
+  'What BlueLauncher does on an Android TV box: Rust-ranked app search, pin-ordered favorites, bounded recents, category filters and three dark themes. Offline, no ads.';
+const keywords = [
+  'Android TV launcher features',
+  'Android TV app search',
+  'TV launcher favorites',
+  'dark Android TV launcher',
+  'Leanback launcher',
+];
+const crumbs = [{ name: 'Features', path: '/features/' }];
 ---
 
-<Base title={title} description={description}>
+<Base title={title} description={description} keywords={keywords} breadcrumb={crumbs}>
   <div class="page-intro">
     <p class="kicker">Features</p>
-    <h1 class="display page-intro__title">Everything a home screen needs</h1>
-    <p class="lede page-intro__lede">{description}</p>
+    <h1 class="display page-intro__title">Everything an Android TV home screen needs</h1>
+    <p class="lede page-intro__lede">
+      Rust-ranked search, ordered favorites, bounded recents, category filters and three dark themes
+      — all local, all offline.
+    </p>
+    <Breadcrumbs items={crumbs} />
   </div>
 
   {

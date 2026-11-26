@@ -1,10 +1,13 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import SectionHead from '@/components/SectionHead.astro';
 import Icon from '@/components/Icon.astro';
 import Button from '@/components/Button.astro';
 import { SITE } from '@/lib/site';
 import { url } from '@/lib/url';
+
+const crumbs = [{ name: 'Licenses', path: '/license/' }];
 
 const codeTerms = [
   'You can run, study, share and modify the launcher.',
@@ -22,8 +25,10 @@ const assetTerms = [
 ---
 
 <Base
-  title="Licenses"
-  description="BlueLauncher is GPL-3.0 for code and CC BY 4.0 for brand assets. Here is what each means in practice."
+  title="Licenses: GPL-3.0 code, CC BY 4.0 assets"
+  description="BlueLauncher is GPL-3.0 for the Kotlin and Rust code and CC BY 4.0 for brand assets. Here is what each licence means in practice."
+  keywords={['GPL-3.0 Android app', 'CC BY 4.0 brand assets', 'open source launcher licence']}
+  breadcrumb={crumbs}
 >
   <div class="page-intro">
     <p class="kicker">Licenses</p>
@@ -32,6 +37,7 @@ const assetTerms = [
       The code is GPL-3.0. The logo, icons and banner are CC BY 4.0. This page summarizes what each
       licence allows.
     </p>
+    <Breadcrumbs items={crumbs} />
   </div>
 
   <div class="cards">

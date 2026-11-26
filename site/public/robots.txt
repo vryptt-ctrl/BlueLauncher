@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
 
+# Fully public documentation; no crawl restrictions so Googlebot can render
+# pages with their CSS and images.
 Sitemap: https://bluelauncher.bond/sitemap-index.xml

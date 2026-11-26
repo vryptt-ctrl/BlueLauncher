@@ -1,16 +1,21 @@
 {
-  "name": "BlueLauncher",
+  "name": "BlueLauncher — Android TV launcher",
   "short_name": "BlueLauncher",
-  "description": "A small, offline home screen for Android TV.",
+  "description": "Offline, open-source Android TV home launcher with Rust-ranked search and pinned favorites.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#070B14",
   "theme_color": "#070B14",
+  "categories": ["utilities", "productivity"],
   "icons": [
     {
       "src": "/brand/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/favicon.svg",

@@ -1,5 +1,6 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import StepList from '@/components/StepList.astro';
 import CodeBlock from '@/components/CodeBlock.astro';
 import SectionHead from '@/components/SectionHead.astro';
@@ -8,6 +9,15 @@ import Icon from '@/components/Icon.astro';
 import { INSTALL_STEPS, INSTALL_TROUBLESHOOTING } from '@/data/content';
 import { SITE } from '@/lib/site';
 import { url } from '@/lib/url';
+
+const crumbs = [{ name: 'Install', path: '/install/' }];
+const keywords = [
+  'install Android TV launcher',
+  'sideload APK Android TV',
+  'adb install Android TV',
+  'set default home app Android TV',
+  'BlueLauncher APK download',
+];
 
 const requirements = [
   `Android TV or a phone/tablet running Android ${SITE.minSdk} or newer`,
@@ -27,15 +37,19 @@ const faqSchema = {
 ---
 
 <Base
-  title="Install"
-  description="Install BlueLauncher on Android TV with adb, set it as the default home app, and troubleshoot common rejections."
+  title="Install on Android TV"
+  description="Download the signed BlueLauncher APK and install it on Android TV or Google TV over adb or a file manager, then set it as the default home app. Android 6.0+."
+  keywords={keywords}
+  breadcrumb={crumbs}
 >
   <div class="page-intro">
     <p class="kicker">Install</p>
-    <h1 class="display page-intro__title">Install</h1>
+    <h1 class="display page-intro__title">Install on Android TV</h1>
     <p class="lede">
-      BlueLauncher ships as a normal APK. There is no store listing and no companion app.
+      BlueLauncher ships as a normal APK, signed and ready to sideload on any Android TV or Google TV
+      device. There is no store listing and no companion app.
     </p>
+    <Breadcrumbs items={crumbs} />
     <div class="cluster page-intro__actions">
       <Button href={SITE.releases} external icon="download">Open latest release</Button>
       <Button href={url('/build/')} variant="secondary" icon="build">Build it yourself</Button>
@@ -90,10 +104,11 @@ const faqSchema = {
 
   <section class="section">
     <div class="notice">
-      <h2 class="h3">Release builds are unsigned</h2>
+      <h2 class="h3">Signed release builds</h2>
       <p class="muted">
-        The repository contains no production signing key. If your device blocks unsigned packages,
-        install the debug APK or assemble a signed release with your own keystore.
+        BlueLauncher is not on a store. Each release APK is R8-shrunk, zipaligned and signed by the
+        maintainer; the signing key itself is not in the repository. Building from source with
+        <code>assembleRelease</code> gives you an unsigned APK that you sign with your own keystore.
       </p>
     </div>
   </section>

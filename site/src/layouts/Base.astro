@@ -14,6 +14,16 @@ interface Props {
   ogType?: 'website' | 'article';
   /** Full-bleed main without the default max-width wrapper. */
   fluid?: boolean;
+  /** Keep the page out of search indexes (404 and similar). */
+  noindex?: boolean;
+  /** Override the canonical path (defaults to the current page). */
+  canonicalPath?: string;
+  /** Extra search phrases merged into the site-wide keyword list. */
+  keywords?: string[];
+  /** Trail shown as visible crumbs and as a BreadcrumbList node. */
+  breadcrumb?: { name: string; path: string }[];
+  /** ISO date of the last content change, for changelog-style pages. */
+  updated?: string;
 }
 
 const {
@@ -22,37 +32,108 @@ const {
   bare = false,
   ogType = 'website',
   fluid = false,
+  noindex = false,
+  canonicalPath,
+  keywords = [],
+  breadcrumb,
+  updated,
 } = Astro.props;
 
 const fullTitle = bare ? title : `${title} · ${SITE.name}`;
-const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const canonical = new URL(canonicalPath ?? Astro.url.pathname, Astro.site).href;
 const ogImage = absoluteUrl(SITE.ogImage);
+const siteRoot = Astro.site?.href.replace(/\/+$/, '') ?? '';
 
-/** Factual Schema.org graph: one WebSite node plus one SoftwareApplication node. */
+const allKeywords = [...new Set([...SITE.keywords, ...keywords])].join(', ');
+
+/** Crumbs always start at Home so Google can render the rich result. */
+const crumbs = [{ name: 'Home', path: '/' }, ...(breadcrumb ?? [])];
+
+/**
+ * Factual Schema.org graph: WebSite + SoftwareApplication once, plus a WebPage
+ * node per URL so search engines get a page title, breadcrumb trail and
+ * freshness signal without duplicating the app node on every page.
+ */
 const schema = {
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'WebSite',
-      '@id': `${Astro.site?.href.replace(/\/+$/, '')}/#website`,
+      '@id': `${siteRoot}/#website`,
       name: SITE.name,
-      url: Astro.site?.href,
+      alternateName: 'BlueLauncher for Android TV',
+      url: `${siteRoot}/`,
       inLanguage: 'en',
+      description: SITE.description,
+      publisher: { '@id': `${siteRoot}/#org` },
+    },
+    {
+      '@type': 'Organization',
+      '@id': `${siteRoot}/#org`,
+      name: 'BlueLauncher contributors',
+      url: SITE.repo,
+      logo: {
+        '@type': 'ImageObject',
+        url: absoluteUrl('/brand/icon-512.png'),
+        width: 512,
+        height: 512,
+      },
+      sameAs: [SITE.repo],
     },
     {
       '@type': 'SoftwareApplication',
+      '@id': `${siteRoot}/#app`,
       name: SITE.name,
+      alternateName: 'BlueLauncher Android TV launcher',
       applicationCategory: 'UtilitiesApplication',
+      applicationSubCategory: 'Home screen launcher',
       operatingSystem: `Android TV, Android ${SITE.minSdk}+`,
       softwareVersion: SITE.version,
       description: SITE.description,
-      url: Astro.site?.href,
+      url: `${siteRoot}/`,
       downloadUrl: SITE.releases,
+      installUrl: SITE.releases,
       isAccessibleForFree: true,
       license: 'https://spdx.org/licenses/GPL-3.0.html',
-      author: { '@type': 'Organization', name: 'BlueLauncher contributors', url: SITE.repo },
+      author: { '@id': `${siteRoot}/#org` },
+      publisher: { '@id': `${siteRoot}/#org` },
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-      screenshot: ogImage,
+      screenshot: [ogImage],
+      softwareRequirements: `Android ${SITE.minSdk} or newer; arm64-v8a, armeabi-v7a or x86_64`,
+      fileSize: '1.2MB',
+      featureList: [
+        'Offline operation with no network permission',
+        'Rust-ranked app search with a Kotlin fallback',
+        'Ordered favorites and bounded recents',
+        'Category filters and three dark themes',
+        'No ads, no analytics, no crash reporting',
+      ],
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${canonical}#webpage`,
+      url: canonical,
+      name: fullTitle,
+      description,
+      inLanguage: 'en',
+      isPartOf: { '@id': `${siteRoot}/#website` },
+      about: { '@id': `${siteRoot}/#app` },
+      primaryImageOfPage: { '@type': 'ImageObject', url: ogImage },
+      keywords: allKeywords,
+      ...(updated ? { dateModified: updated } : {}),
+      ...(crumbs.length > 1
+        ? {
+            breadcrumb: {
+              '@type': 'BreadcrumbList',
+              itemListElement: crumbs.map((crumb, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                name: crumb.name,
+                item: new URL(crumb.path, Astro.site).href,
+              })),
+            },
+          }
+        : {}),
     },
   ],
 };
@@ -65,9 +146,20 @@ const schema = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {/* Google ignores this tag, but Bing/Yandex still parse it and it costs
+        nothing. The same phrases are in the WebPage JSON-LD node. */}
+    {!noindex && <meta name="keywords" content={allKeywords} />}
     <link rel="canonical" href={canonical} />
     <link rel="alternate" hreflang="en" href={canonical} />
     <link rel="alternate" hreflang="x-default" href={canonical} />
+    {noindex ? (
+      <meta name="robots" content="noindex, follow" />
+    ) : (
+      <meta
+        name="robots"
+        content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+      />
+    )}
     <meta name="theme-color" content="#070B14" />
     <meta name="color-scheme" content="dark" />
 
@@ -84,17 +176,20 @@ const schema = {
 
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1280" />
     <meta property="og:image:height" content="640" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:alt" content="BlueLauncher — lightweight Android TV home launcher" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content="BlueLauncher — lightweight Android TV home launcher" />
 
     <slot name="head-extras" />
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />

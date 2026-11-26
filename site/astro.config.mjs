@@ -12,7 +12,19 @@ export default defineConfig({
   site: 'https://bluelauncher.bond',
   trailingSlash: 'always',
   output: 'static',
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      // Only real content pages; 404 stays out of the sitemap.
+      filter: (page) => !page.includes('/404'),
+      // Relative importance, home first then the install guide. No lastmod:
+      // it would churn on every build without telling crawlers anything new.
+      serialize(item) {
+        const path = new URL(item.url).pathname;
+        item.priority = path === '/' ? 1 : path === '/install/' ? 0.9 : 0.7;
+        return item;
+      },
+    }),
+  ],
   build: {
     format: 'directory',
     inlineStylesheets: 'auto',

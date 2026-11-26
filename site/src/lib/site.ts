@@ -8,10 +8,15 @@ export const SITE = {
   name: 'BlueLauncher',
   tagline: 'A small, offline home screen for Android TV.',
   description:
-    'Small native Android TV home launcher. Kotlin UI, Rust search core, fully offline. No ads, no analytics, open source.',
+    'Free, open-source Android TV home launcher. Kotlin UI, Rust-ranked app search, fully offline — no ads, no analytics, no network permission.',
   version: '1.1.1',
   versionDate: '2026-11-25',
   releaseDate: '2026-11-25',
+  /** APK attached to the latest GitHub release, and its measured size. */
+  releaseApk: 'BlueLauncher-v1.1.1-release.apk',
+  releaseApkSize: 'about 1.2 MB',
+  /** Debug build: all three ABIs, unshrunk. */
+  debugApkSize: 'about 3.9 MB',
   packageId: 'com.bluelabs.bluelauncher',
   minSdk: 23,
   compileSdk: 36,
@@ -28,6 +33,24 @@ export const SITE = {
   licenseAssets: 'https://github.com/vryptt-ctrl/BlueLauncher/blob/main/brand/LICENSE-ASSETS.md',
   changelog: 'https://github.com/vryptt-ctrl/BlueLauncher/blob/main/CHANGELOG.md',
   ogImage: '/brand/social-preview-1280x640.png',
+  /**
+   * Search-facing topic list. Feeds schema.org `keywords` and the default
+   * `<meta name="keywords">`, so keep the phrases people actually type.
+   */
+  keywords: [
+    'Android TV launcher',
+    'Android TV home screen',
+    'Android TV box launcher',
+    'open source Android launcher',
+    'lightweight launcher',
+    'offline launcher',
+    'no ads launcher',
+    'Kotlin launcher',
+    'Rust JNI',
+    'Leanback launcher',
+    'launcher APK',
+    'sideload APK',
+  ],
 } as const;
 
 export type NavItem = { label: string; href: string };

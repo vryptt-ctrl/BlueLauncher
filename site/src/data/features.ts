@@ -24,10 +24,10 @@ export const HIGHLIGHTS = [
   },
   {
     icon: 'feather',
-    stat: '< 1 MB',
-    label: 'R8-shrunk release',
+    stat: '~1.2 MB',
+    label: 'signed release APK',
     title: 'Small APK',
-    body: 'The debug APK is roughly 3.9 MB with three ABIs; release builds shrink below a megabyte.',
+    body: 'R8 and resource shrinking bring the signed release APK to about 1.2 MB. A debug build is about 3.9 MB because it carries all three ABIs unshrunk.',
   },
   {
     icon: 'cpu',

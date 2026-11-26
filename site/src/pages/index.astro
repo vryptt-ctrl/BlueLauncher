@@ -29,7 +29,7 @@ const FAQ = [
   },
   {
     q: 'How big is the APK?',
-    a: 'Release builds are R8-shrunk below one megabyte; the debug APK is roughly 3.9 MB because it ships all three ABIs unshrunk.',
+    a: `The signed release APK is ${SITE.releaseApkSize} after R8 and resource shrinking; a local debug build is ${SITE.debugApkSize} because it ships all three ABIs unshrunk.`,
   },
   {
     q: 'Which Android versions are supported?',
@@ -43,6 +43,18 @@ const FAQ = [
     q: 'Does search send my app list anywhere?',
     a: 'No. Search runs entirely on the device: the Rust core scores labels, pins and recents locally, with a Kotlin fallback on unsupported ABIs.',
   },
+  {
+    q: 'Is BlueLauncher free and open source?',
+    a: `Yes. The Kotlin and Rust source is GPL-3.0 on GitHub, and every APK is built from it. There is no paid tier, no subscription and no telemetry.`,
+  },
+  {
+    q: 'Does it work on Google TV, Chromecast and Android TV boxes?',
+    a: 'Yes, on any device running Android 6.0 (API 23) or newer with an arm64-v8a, armeabi-v7a or x86_64 CPU — Google TV sticks, Chromecast with Google TV, Nvidia Shield, Mi Box and generic Android TV boxes included.',
+  },
+  {
+    q: 'Is BlueLauncher on the Play Store?',
+    a: 'No. It is distributed as a signed APK from GitHub Releases and is sideloaded over adb or a file manager.',
+  },
 ];
 
 const faqSchema = {
@@ -54,20 +66,28 @@ const faqSchema = {
     acceptedAnswer: { '@type': 'Answer', text: item.a },
   })),
 };
+
+const description =
+  'Free, open-source Android TV home launcher with Rust-ranked search and pinned favorites. Offline by design — no ads, no analytics, no network permission.';
 ---
 
-<Base title={`${SITE.name} — ${SITE.tagline}`} bare>
+<Base
+  title="BlueLauncher — offline, open-source Android TV launcher"
+  description={description}
+  bare
+>
   <!-- ── Hero ─────────────────────────────────────────────────────────── -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero__copy">
       <p class="kicker">Android TV home launcher</p>
       <h1 class="display hero__title" id="hero-title">
         BlueLauncher<br />
-        <span class="gradient-text">for Android TV</span>
+        <span class="gradient-text">Android TV launcher</span>
       </h1>
       <p class="hero__lede">
-        A small, native home screen for your TV. Kotlin draws the interface and handles the Android
-        side; a Rust module ranks and searches your apps on the device. Nothing phones home.
+        A small, native Android TV launcher for your television. Kotlin draws the interface and
+        handles the Android side; a Rust module ranks and searches your apps on the device. Nothing
+        phones home.
       </p>
 
       <div class="hero__actions">
@@ -117,7 +137,7 @@ const faqSchema = {
   <section class="section" aria-labelledby="screens-title">
     <SectionHead
       kicker="Screenshots"
-      title="What it looks like"
+      title="BlueLauncher on an Android TV screen"
       lede="Captured at 1920×1080 on a TV-sized display."
       id="screens-title"
     />
@@ -131,7 +151,7 @@ const faqSchema = {
   <section class="section" aria-labelledby="features-title">
     <SectionHead
       kicker="Features"
-      title="What it does"
+      title="Android TV launcher features"
       lede="The parts of a launcher you actually use, without the rest."
       id="features-title"
     />
@@ -164,10 +184,10 @@ const faqSchema = {
     <div class="install__panel">
       <div class="install__copy">
         <p class="kicker">Get it running</p>
-        <h2 class="h2" id="install-title">Install in three commands</h2>
+        <h2 class="h2" id="install-title">Install BlueLauncher on Android TV</h2>
         <p class="muted install__text">
-          Release builds ship unsigned through GitHub Releases. If your device rejects unsigned
-          packages, install the debug APK or build it yourself.
+          Every release is R8-shrunk, zipaligned and signed by the maintainer before it goes up on
+          GitHub. Building from source works too if you would rather sign it yourself.
         </p>
         <div class="cluster">
           <Button href={url('/install/')} icon="download">Installation guide</Button>

@@ -6,7 +6,12 @@ import { SITE } from '@/lib/site';
 import { url } from '@/lib/url';
 ---
 
-<Base title="Page not found" description="That page does not exist on this site.">
+<Base
+  title="Page not found"
+  description="That page does not exist on this site."
+  canonicalPath="/"
+  noindex
+>
   <div class="nf">
     <Mark size={88} tone="dark" class="nf__mark" />
     <p class="kicker">Error 404</p>

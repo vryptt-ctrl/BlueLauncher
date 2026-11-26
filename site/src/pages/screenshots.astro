@@ -1,24 +1,46 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import Gallery from '@/components/Gallery.astro';
 import SectionHead from '@/components/SectionHead.astro';
 import { SHOTS } from '@/data/shots';
 import { SITE } from '@/lib/site';
 import { url } from '@/lib/url';
+
+const crumbs = [{ name: 'Screenshots', path: '/screenshots/' }];
+const keywords = [
+  'Android TV launcher screenshots',
+  'Android TV home screen UI',
+  'TV launcher design',
+];
+
+/** ImageGallery schema so the shots can surface in image search. */
+const gallerySchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ImageGallery',
+  name: 'BlueLauncher Android TV launcher screenshots',
+  description: 'Home, search, favorites and settings at 1920×1080.',
+  image: SHOTS.map(
+    (shot) => `${(import.meta.env.SITE || 'https://bluelauncher.bond').replace(/\/+$/, '')}${shot.image.src}`,
+  ),
+};
 ---
 
 <Base
-  title="Screenshots"
-  description="Every BlueLauncher screen at 1920×1080: home, search, favorites and settings."
+  title="Android TV launcher screenshots"
+  description="Every BlueLauncher screen at 1920×1080: home grid, search, favorites and the settings dialog on an Android TV home screen."
+  keywords={keywords}
+  breadcrumb={crumbs}
 >
   <div class="page-intro">
     <p class="kicker">Screenshots</p>
-    <h1 class="display page-intro__title">Screenshots</h1>
+    <h1 class="display page-intro__title">BlueLauncher screenshots</h1>
     <p class="lede">
       Four screens capture the whole launcher: home, search, favorites and the settings dialog.
       Captured at 1920×1080 on a TV-sized display; the settings dialog opens over the home screen
       rather than replacing it.
     </p>
+    <Breadcrumbs items={crumbs} />
   </div>
 
   <section class="section section--flush" aria-labelledby="gallery-title">
@@ -50,6 +72,12 @@ import { url } from '@/lib/url';
       </p>
     </div>
   </section>
+
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(gallerySchema)}
+    slot="head-extras"
+  />
 </Base>
 
 <style>
