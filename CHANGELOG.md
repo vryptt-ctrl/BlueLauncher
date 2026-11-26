@@ -2,6 +2,31 @@
 
 All notable changes to BlueLauncher are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- A settings or long-press panel now always dismisses; a panel whose caller passed no dismiss action used to fade out but leave its invisible scrim attached, swallowing every key press.
+- Settings rows repaint immediately after a toggle: the check mark and accent colour are read back from the live preference instead of being painted once when the panel opened.
+- Icon and text share a label again. Only the private-use glyph codepoints are rendered with the bundled symbol font and the words stay in Inter, so headings and chips no longer show tofu boxes or Roboto fallback.
+- Typing in search no longer replays the card entrance animation on every keystroke, which looked like flicker on low-end boxes.
+- Imported wallpapers are center-cropped to the screen aspect when drawn, and each import deletes the previous JPEG. Switching back to a built-in wallpaper removes the imported file instead of leaving it behind.
+- The resume badge no longer points at whatever survived the current search or category filter; the target is resolved against every installed app.
+- Reordering a pinned favourite no longer drops pins whose app is temporarily uninstalled, and it swaps the two slots so a hidden pin keeps its position.
+- The Media category no longer swallows the system TV settings and the remote; hints match the package name only and generic words like "tv" and "player" are gone.
+- The resume badge pulse runs a fixed number of breaths and stops on pause, instead of invalidating the view forever.
+- Hero decoration repaints after a theme change instead of keeping the previous palette's tint.
+- The category chip keeps its selected fill when the cursor moves to a sibling chip.
+- A package install or update no longer steals focus out of the search box, and pressing Home again only rescans when something actually changed.
+- The clock keeps the system's own 24-hour pattern, so locales that use a separator such as "HH.mm" still look native.
+- The native search library degrades to the Kotlin fallback on any load failure, and labels containing tabs or newlines no longer corrupt the JNI payload.
+- Release builds use the real bundled Inter 700 and 300 weights instead of synthesised bold and a 400 substitute.
+
+### Changed
+- Renders triggered from the settings panel, from launching an app, or from a palette change skip the grid entrance animation.
+- Dead code and one unused string were removed (`onboardingComplete`, `saveAppOrder`, `roundIcon`, `TextView.colors`, `wallpaperEnd`, `GLYPH_SECTION_*`, `favorites_hint_title`).
+- The Rust build task now tracks `Cargo.lock` and appends to `RUSTFLAGS` instead of overwriting a caller's value.
+- README and site copy describe the custom `Dialog` panels rather than the platform `AlertDialog`.
+
 ## [1.1.1] - 2026-11-25
 
 ### Added

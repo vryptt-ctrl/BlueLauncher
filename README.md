@@ -93,7 +93,7 @@ adb shell cmd package set-home-activity com.bluelabs.bluelauncher/.MainActivity
 - `nativeengine/NativeEngine.kt` / `app/src/main/rust` — JNI search ranking and preference scoring.
 - `proguard-rules.pro` — keeps the JNI entry points alive through R8.
 
-The only AndroidX artifact is `androidx.activity`, used for lifecycle-safe document-picker results and predictive-back handling. Dialogs use the platform `AlertDialog`; all home UI is programmatic platform Views.
+The only AndroidX artifact is `androidx.activity`, used for lifecycle-safe document-picker results and predictive-back handling. Dialogs are custom in-theme `Dialog` panels built from platform Views; all home UI is programmatic platform Views.
 
 ## Branding
 

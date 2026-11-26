@@ -2,10 +2,13 @@ package com.bluelabs.bluelauncher.nativeengine
 
 /** Small native search and personalization scorer; Android package/UI work stays in Kotlin. */
 object NativeEngine {
+    /** True when the Rust library loaded; false after any load failure (also non-link errors). */
     val isAvailable: Boolean = try {
         System.loadLibrary("blue_launcher")
         true
-    } catch (_: UnsatisfiedLinkError) {
+    } catch (error: Throwable) {
+        // Only UnsatisfiedLinkError was handled before: a static initialiser failure in
+        // the generated JNI glue surfaced as ExceptionInInitializerError and crashed.
         false
     }
 
@@ -26,7 +29,9 @@ object NativeEngine {
         if (isAvailable) {
             val rows = buildString {
                 apps.forEach { (packageName, label) ->
-                    append(packageName).append('\t').append(label).append('\n')
+                    // The native side splits on tab and newline; a label containing either
+                    // would corrupt the record and drop the app from the results.
+                    append(sanitize(packageName)).append('\t').append(sanitize(label)).append('\n')
                 }
             }
             val result = runCatching {
@@ -51,6 +56,10 @@ object NativeEngine {
     }
 
     private fun Int?.orZero(): Int = this ?: 0
+
+    /** Keeps one record per line: tabs/newlines in a label would split it in the JNI payload. */
+    private fun sanitize(value: String): String =
+        value.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ').trim()
 
     private fun matchScore(label: String, query: String): Int {
         if (query.isBlank()) return 0

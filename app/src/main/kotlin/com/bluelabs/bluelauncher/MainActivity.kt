@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity(), LauncherViews.Callbacks {
     private var currentQuery = ""
     private var category = AppCategory.ALL
     private var dirtyApps = true
+    private var hasLoadedOnce = false
     private var startupElapsedMs = 0L
     private var receiverRegistered = false
     private val wallpaperPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -115,14 +116,18 @@ class MainActivity : ComponentActivity(), LauncherViews.Callbacks {
     override fun onPause() {
         mainHandler.removeCallbacks(clockTick)
         mainHandler.removeCallbacks(refreshApps)
+        // Stops the resume-badge pulse while another app is on screen.
+        if (::launcherViews.isInitialized) launcherViews.stopHeroPulse()
         super.onPause()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        dirtyApps = true
-        loadApps()
+        // Pressing Home again is the common case here. A full package rescan plus a
+        // re-animated grid on every press looked like a flicker, so only re-read when
+        // something actually changed.
+        if (dirtyApps) loadApps()
     }
 
     override fun onDestroy() {
@@ -162,7 +167,9 @@ class MainActivity : ComponentActivity(), LauncherViews.Callbacks {
         runCatching {
             if (repository.launch(app.packageName)) {
                 preferences.recordLaunch(app.packageName)
-                renderApps()
+                // The recents row must update, but the grid the user just left should not
+                // replay its entrance animation every time they come back.
+                renderApps(animate = false)
             } else launcherViews.showLaunchError()
         }.onFailure { launcherViews.showLaunchError() }
     }
@@ -182,17 +189,23 @@ class MainActivity : ComponentActivity(), LauncherViews.Callbacks {
     }
 
     override fun openSettings() {
+        // Everything reachable from this panel changes a preference while the grid is
+        // covered by the dialog; replaying the 30+ card entrance behind it only made the
+        // panel feel slow, so renders triggered from here skip the animation.
         launcherViews.showSettings(
             onWallpaper = { wallpaper ->
                 preferences.wallpaper = wallpaper
+                // The picked JPEG is no longer referenced, so delete it instead of
+                // leaving an orphan behind in filesDir.
+                WallpaperStore.clear(applicationContext)
                 preferences.wallpaperImage = ""
                 launcherViews.updatePalette(Palette.fromWallpaper(wallpaper))
-                renderApps()
+                renderApps(animate = false)
             },
             onSections = { favorites, recent ->
                 preferences.showFavorites = favorites
                 preferences.showRecent = recent
-                renderApps()
+                renderApps(animate = false)
             },
             onClockSettings = { clock, date, clock24 ->
                 preferences.showClock = clock
@@ -202,7 +215,7 @@ class MainActivity : ComponentActivity(), LauncherViews.Callbacks {
             },
             onReset = {
                 preferences.resetLayout()
-                renderApps()
+                renderApps(animate = false)
                 launcherViews.updateClock()
             },
             onChooseImage = { wallpaperPicker.launch(arrayOf("image/*")) },
@@ -256,6 +269,7 @@ class MainActivity : ComponentActivity(), LauncherViews.Callbacks {
 
     private fun loadApps() {
         dirtyApps = false
+        val isFirstLoad = !hasLoadedOnce
         appLoader.execute {
             val result = runCatching { repository.loadInstalledApps() }.getOrDefault(emptyList())
             if (isFinishing || isDestroyed) return@execute
@@ -263,15 +277,18 @@ class MainActivity : ComponentActivity(), LauncherViews.Callbacks {
                 if (!isFinishing && !isDestroyed) {
                     installedApps = result
                     renderApps()
-                    if (result.isNotEmpty() && currentQuery.isEmpty()) launcherViews.root.post {
+                    // Only the first load grabs the cursor. A package install/update used
+                    // to yank focus out of the search box or a settings chip.
+                    if (isFirstLoad && result.isNotEmpty() && currentQuery.isEmpty()) launcherViews.root.post {
                         if (!isFinishing) launcherViews.focusFirstApp()
                     }
+                    hasLoadedOnce = true
                 }
             }
         }
     }
 
-    private fun renderApps() {
+    private fun renderApps(animate: Boolean = true) {
         val order = preferences.orderedApps(installedApps.map { it.packageName })
         val byPackage = installedApps.associateBy { it.packageName }
         val inCategory = category.filter(installedApps, preferences.favorites)
@@ -288,7 +305,10 @@ class MainActivity : ComponentActivity(), LauncherViews.Callbacks {
         } else {
             filtered
         }
-        launcherViews.render(display, currentQuery)
+        // The hero badge resumes the last opened app even while a search or category
+        // filter hides it; falling back to the first *installed* app keeps it useful.
+        val resume = preferences.recent.firstNotNullOfOrNull(byPackage::get) ?: order.firstNotNullOfOrNull(byPackage::get)
+        launcherViews.render(display, currentQuery, category, animate, resume)
     }
 
     companion object {

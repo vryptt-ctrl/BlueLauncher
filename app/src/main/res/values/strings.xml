@@ -52,7 +52,6 @@
     <string name="search_hint">Search your apps</string>
     <string name="choose_wallpaper_image">Choose an image…</string>
     <string name="no_favorites">Hold OK on an app to pin it here.</string>
-    <string name="favorites_hint_title">Nothing pinned yet</string>
     <string name="remove_favorite">Remove from favorites</string>
     <string name="move_toward_start">Move toward start</string>
     <string name="move_toward_end">Move toward end</string>

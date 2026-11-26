@@ -128,7 +128,7 @@ export const SCORE_TABLE = [
 export const DEPENDENCIES = [
   {
     title: 'One AndroidX artifact',
-    body: 'androidx.activity only, for lifecycle-safe document-picker results and predictive-back handling. Dialogs use the platform AlertDialog.',
+    body: 'androidx.activity only, for lifecycle-safe document-picker results and predictive-back handling. Settings and menus are custom in-theme Dialog panels built from platform Views.',
   },
   {
     title: 'One Rust crate',

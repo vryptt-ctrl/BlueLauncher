@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
@@ -109,6 +110,8 @@ class LauncherViews(
     private val heroTitle = TextView(context)
     private val heroBadge = TextView(context)
     private val heroCount = TextView(context)
+    private lateinit var heroOrbLarge: View
+    private lateinit var heroOrbSmall: View
     private val heroHint = TextView(context)
     private val clock = TextView(context)
     private val date = TextView(context)
@@ -120,8 +123,14 @@ class LauncherViews(
     private var initialized = false
     private var wallpaperGeneration = 0
     private var isProgrammaticSearchUpdate = false
+    /** True when the pending [renderContent] came from a query edit (typing). */
+    private var queryChanged = false
+    /** Resume target chosen by the caller from the full app list, not the filtered one. */
+    private var renderResumeApp: LauncherApp? = null
     private var diagnostics: (() -> String)? = null
     private var resumeApp: LauncherApp? = null
+    private var pulseActive = false
+    private var pulsesLeft = 0
     private val dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM)
     private val wallpaperExecutor = Executors.newSingleThreadExecutor { task ->
         Thread(task, "BlueLauncher-wallpaper").apply { priority = Thread.NORM_PRIORITY - 1 }
@@ -136,6 +145,9 @@ class LauncherViews(
          */
         const val HEADROOM_DP = 10
 
+        /** Number of breathing cycles for the resume badge before it settles. */
+        private const val HERO_PULSES = 4
+
         /** Material Symbols Rounded codepoints (subset bundled as res/font/blue_icons.ttf). */
         const val GLYPH_SEARCH = ''
         const val GLYPH_SETTINGS = ''
@@ -145,8 +157,6 @@ class LauncherViews(
         const val GLYPH_FILTER_FAVORITES = ''
         const val GLYPH_FILTER_MEDIA = ''
         const val GLYPH_FILTER_GAMES = ''
-        const val GLYPH_SECTION_FAVORITES = ''
-        const val GLYPH_SECTION_RECENT = ''
     }
 
     init {
@@ -157,10 +167,24 @@ class LauncherViews(
         loadWallpaperAsync()
     }
 
-    fun render(apps: List<LauncherApp>, query: String) {
+    fun render(
+        apps: List<LauncherApp>,
+        query: String,
+        category: AppCategory = AppCategory.ALL,
+        animate: Boolean = true,
+        resume: LauncherApp? = null,
+    ) {
         this.apps = apps
+        // The category travels with the render so the chips can never highlight a
+        // filter that differs from the one MainActivity actually applied.
+        categoryIndex = category.ordinal
+        // Resolved against the full installed list by the caller: `apps` is already
+        // filtered by query/category, so the badge used to point at whatever survived
+        // the filter instead of the app the user actually opened last.
+        renderResumeApp = resume
         if (this.query != query) {
             this.query = query
+            queryChanged = true
             if (searchBox.text.toString() != query) {
                 isProgrammaticSearchUpdate = true
                 searchBox.setText(query)
@@ -168,11 +192,24 @@ class LauncherViews(
                 isProgrammaticSearchUpdate = false
             }
         }
-        renderContent()
+        renderContent(animate)
     }
 
     fun setDiagnostics(provider: () -> String) { diagnostics = provider }
-    fun focusSearch() { searchBox.requestFocus() }
+
+    /**
+     * Focuses the search field and asks the IME to appear. The window is created with
+     * SOFT_INPUT_STATE_ALWAYS_HIDDEN, so a bare requestFocus() left the box untypeable on
+     * devices with an on-screen keyboard (TV Gboard, emulators, phones).
+     */
+    fun focusSearch() {
+        searchBox.requestFocus()
+        searchBox.post {
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(searchBox, InputMethodManager.SHOW_IMPLICIT)
+        }
+    }
+
     fun focusFirstApp() { appsStrip.getChildAt(0)?.requestFocus() }
 
     /** Hero play button resumes the most recently opened app, Google-TV style. */
@@ -181,13 +218,20 @@ class LauncherViews(
         resumeApp = app
         heroBadge.contentDescription = app?.let { context.getString(R.string.hero_resume, it.label) }
         if (app != null && !hadResume && heroBadge.isAttachedToWindow) startHeroPulse()
-        if (app == null) heroBadge.animate().cancel()
+        if (app == null) stopHeroPulse()
     }
 
     fun updateClock() {
         val now = Date()
-        val format = if (preferences.clock24Hour) java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-        else android.text.format.DateFormat.getTimeFormat(context)
+        // 24-hour mode keeps the system's own pattern so locales that use a separator
+        // ("HH.mm") or a different hour cycle still look native.
+        val format = if (preferences.clock24Hour) {
+            android.text.format.DateFormat.getTimeFormat(context).let { system ->
+                val pattern = (system as? java.text.SimpleDateFormat)?.toPattern()
+                if (pattern != null && !pattern.contains('a')) system
+                else java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+            }
+        } else android.text.format.DateFormat.getTimeFormat(context)
         clock.text = format.format(now)
         date.text = dateFormat.format(now)
         clock.visibility = if (preferences.showClock) View.VISIBLE else View.GONE
@@ -202,7 +246,9 @@ class LauncherViews(
         hero.background = heroBackground()
         applyTextColors()
         loadWallpaperAsync()
-        renderContent()
+        // A palette change repaints the existing cards; replaying the entrance would just
+        // flash the grid, and this path runs while the settings panel is still open.
+        renderContent(animate = false)
     }
 
     /** Palette changes must recolor the static header/hero text, not only the rebuilt app rows. */
@@ -216,6 +262,10 @@ class LauncherViews(
         heroCount.setTextColor(palette.muted)
         heroBadge.setTextColor(palette.onAccent)
         paintHeroBadge(heroBadge.isFocused)
+        // Rebuild the decorative orbs, otherwise the previous theme's tint stays on the
+        // hero until the activity is recreated.
+        heroOrbLarge.background = orbBackground(palette.glow.alpha(58), palette.glow.alpha(16))
+        heroOrbSmall.background = orbBackground(palette.accentBright.alpha(30), 0x00000000)
         toastLine.setTextColor(palette.text)
         toastLine.background = toastBackground()
         listOf(searchChip, settingsChip).forEach { chip ->
@@ -224,6 +274,12 @@ class LauncherViews(
         }
         listOf(appsHeading, favoritesTitle, recentTitle).forEach { it.setTextColor(palette.muted) }
     }
+
+    /** Soft radial decoration for the hero card, tinted by the active palette. */
+    private fun orbBackground(inner: Int, outer: Int) = GradientDrawable(
+        GradientDrawable.Orientation.TL_BR,
+        intArrayOf(inner, outer, 0x00000000),
+    ).apply { shape = GradientDrawable.OVAL }
 
     /** Circular resume button: accent-filled disc with a glow ring; brighter when focused. */
     private fun paintHeroBadge(focused: Boolean) {
@@ -279,6 +335,8 @@ class LauncherViews(
                     return@post
                 }
                 val previous = (root.background as? BitmapDrawable)?.bitmap
+                // WallpaperStore returns a bitmap already cropped to this aspect ratio, so
+                // FILL cannot distort it.
                 root.background = BitmapDrawable(context.resources, bitmap)
                 if (previous !== bitmap && previous?.isRecycled == false) previous.recycle()
             }
@@ -286,6 +344,7 @@ class LauncherViews(
     }
 
     fun dispose() {
+        stopHeroPulse()
         wallpaperGeneration++
         wallpaperExecutor.shutdownNow()
         val bitmap = (root.background as? BitmapDrawable)?.bitmap
@@ -311,8 +370,8 @@ class LauncherViews(
             setPadding(dp(24), dp(18), dp(24), dp(18))
         }
         panel.addView(TextView(context).apply {
-            typeface = TvUi.inter(context)
-            text = title; textSize = 19f; setTypeface(typeface, android.graphics.Typeface.BOLD)
+            typeface = TvUi.interBold(context)
+            text = title; textSize = 19f
             setTextColor(palette.text)
         })
         if (subtitle != null) {
@@ -359,12 +418,16 @@ class LauncherViews(
         }
         dialog.show()
         cancelButton.setOnClickListener {
+            // Always dismiss: a panel whose caller passed no dismissAction used to
+            // fade its contents out but leave the Dialog attached, so an invisible
+            // scrim kept swallowing every key press.
+            val finish: (Dialog) -> Unit = dismissAction ?: Dialog::dismiss
             panel.animate().cancel()
             panel.animate()
                 .alpha(0f).scaleX(0.94f).scaleY(0.94f)
                 .setDuration(130L)
                 .setInterpolator(TvUi.interpolator)
-                .withEndAction { dismissAction?.invoke(dialog) }
+                .withEndAction { finish(dialog) }
                 .start()
         }
         cancelButton.requestFocus()
@@ -388,6 +451,9 @@ class LauncherViews(
         onAbout: () -> Unit,
     ) {
         val page = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(24), dp(12), dp(24), dp(8)) }
+        // Every row re-reads the preference when it paints, and each click repaints the
+        // whole panel so a toggle is visible immediately while the dialog stays open.
+        val rows = mutableListOf<() -> Unit>()
         page.addView(settingsLabel(context.getString(R.string.background_section).uppercase(), palette.accentBright, 11f))
         page.addView(divider(), TvUi.params(-1, dp(1), top = dp(6), bottom = dp(4)))
         listOf(
@@ -395,40 +461,75 @@ class LauncherViews(
             LauncherPreferences.WALLPAPER_INK to context.getString(R.string.midnight_ink),
             LauncherPreferences.WALLPAPER_OCEAN to context.getString(R.string.deep_ocean),
         ).forEach { (key, label) ->
-            page.addView(settingsOption(label, key == preferences.wallpaper && preferences.wallpaperImage.isBlank()) { onWallpaper(key) },
-                TvUi.params(-1, dp(40), bottom = dp(2)))
+            page.addView(
+                settingsRow(rows, { label }, { key == preferences.wallpaper && preferences.wallpaperImage.isBlank() }) { onWallpaper(key) },
+                TvUi.params(-1, dp(40), bottom = dp(2)),
+            )
         }
-        page.addView(settingsOption(context.getString(R.string.choose_wallpaper_image), preferences.wallpaperImage.isNotBlank()) { onChooseImage() },
-            TvUi.params(-1, dp(40), bottom = dp(2)))
+        page.addView(
+            settingsRow(
+                rows,
+                { context.getString(R.string.choose_wallpaper_image) },
+                { preferences.wallpaperImage.isNotBlank() },
+            ) { onChooseImage() },
+            TvUi.params(-1, dp(40), bottom = dp(2)),
+        )
         page.addView(settingsLabel(context.getString(R.string.home_section).uppercase(), palette.accentBright, 11f),
             TvUi.params(-1, -2, top = dp(12)))
         page.addView(divider(), TvUi.params(-1, dp(1), top = dp(6), bottom = dp(4)))
-        page.addView(settingsOption(context.getString(R.string.show_favorites), preferences.showFavorites) {
-            onSections(!preferences.showFavorites, preferences.showRecent)
-        }, TvUi.params(-1, dp(40), bottom = dp(2)))
-        page.addView(settingsOption(context.getString(R.string.show_recent), preferences.showRecent) {
-            onSections(preferences.showFavorites, !preferences.showRecent)
-        }, TvUi.params(-1, dp(40), bottom = dp(2)))
-        page.addView(settingsOption(context.getString(R.string.show_clock), preferences.showClock) {
-            onClockSettings(!preferences.showClock, preferences.showDate, preferences.clock24Hour)
-        }, TvUi.params(-1, dp(40), bottom = dp(2)))
-        page.addView(settingsOption(context.getString(R.string.show_date), preferences.showDate) {
-            onClockSettings(preferences.showClock, !preferences.showDate, preferences.clock24Hour)
-        }, TvUi.params(-1, dp(40), bottom = dp(2)))
-        page.addView(settingsOption(context.getString(R.string.clock_24_hour), preferences.clock24Hour) {
-            onClockSettings(preferences.showClock, preferences.showDate, !preferences.clock24Hour)
-        }, TvUi.params(-1, dp(40), bottom = dp(2)))
-        page.addView(settingsOption(context.getString(R.string.app_labels), preferences.showAppLabels) {
-            preferences.showAppLabels = !preferences.showAppLabels; renderContent()
-        }, TvUi.params(-1, dp(40), bottom = dp(2)))
+        page.addView(
+            settingsRow(rows, { context.getString(R.string.show_favorites) }, { preferences.showFavorites }) {
+                onSections(!preferences.showFavorites, preferences.showRecent)
+            },
+            TvUi.params(-1, dp(40), bottom = dp(2)),
+        )
+        page.addView(
+            settingsRow(rows, { context.getString(R.string.show_recent) }, { preferences.showRecent }) {
+                onSections(preferences.showFavorites, !preferences.showRecent)
+            },
+            TvUi.params(-1, dp(40), bottom = dp(2)),
+        )
+        page.addView(
+            settingsRow(rows, { context.getString(R.string.show_clock) }, { preferences.showClock }) {
+                onClockSettings(!preferences.showClock, preferences.showDate, preferences.clock24Hour)
+            },
+            TvUi.params(-1, dp(40), bottom = dp(2)),
+        )
+        page.addView(
+            settingsRow(rows, { context.getString(R.string.show_date) }, { preferences.showDate }) {
+                onClockSettings(preferences.showClock, !preferences.showDate, preferences.clock24Hour)
+            },
+            TvUi.params(-1, dp(40), bottom = dp(2)),
+        )
+        page.addView(
+            settingsRow(rows, { context.getString(R.string.clock_24_hour) }, { preferences.clock24Hour }) {
+                onClockSettings(preferences.showClock, preferences.showDate, !preferences.clock24Hour)
+            },
+            TvUi.params(-1, dp(40), bottom = dp(2)),
+        )
+        page.addView(
+            settingsRow(rows, { context.getString(R.string.app_labels) }, { preferences.showAppLabels }) {
+                preferences.showAppLabels = !preferences.showAppLabels
+                // Behind an open panel: the grid is not being looked at, and animating
+                // 30+ cards per toggle made the dialog feel sluggish.
+                renderContent(animate = false)
+            },
+            TvUi.params(-1, dp(40), bottom = dp(2)),
+        )
         page.addView(settingsLabel(context.getString(R.string.app_size_section).uppercase(), palette.accentBright, 11f),
             TvUi.params(-1, -2, top = dp(12)))
         page.addView(divider(), TvUi.params(-1, dp(1), top = dp(6), bottom = dp(4)))
-        page.addView(settingsOption(iconSizeLabel(), false) {
-            preferences.appIconSize = (preferences.appIconSize + 1) % 3; renderContent()
-        }, TvUi.params(-1, dp(40), bottom = dp(2)))
-        page.addView(settingsOption(context.getString(R.string.reset_layout), false, onReset), TvUi.params(-1, dp(40), top = dp(10)))
-        page.addView(settingsOption(context.getString(R.string.about_diagnostics), false, onAbout), TvUi.params(-1, dp(40), top = dp(2)))
+        page.addView(
+            // Card size cycles through three values, so the row shows the current name
+            // instead of a check mark.
+            settingsRow(rows, ::iconSizeLabel, { false }) {
+                preferences.appIconSize = (preferences.appIconSize + 1) % 3
+                renderContent(animate = false)
+            },
+            TvUi.params(-1, dp(40), bottom = dp(2)),
+        )
+        page.addView(settingsRow(rows, { context.getString(R.string.reset_layout) }, { false }, onReset), TvUi.params(-1, dp(40), top = dp(10)))
+        page.addView(settingsRow(rows, { context.getString(R.string.about_diagnostics) }, { false }, onAbout), TvUi.params(-1, dp(40), top = dp(2)))
         val scroll = ScrollView(context).apply { isFillViewport = true; addView(page) }
         showPanelDialog(
             title = context.getString(R.string.settings_title),
@@ -500,9 +601,9 @@ class LauncherViews(
 
         val top = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
         brand.apply {
-            typeface = TvUi.inter(context)
+            typeface = TvUi.interBold(context)
             text = context.getString(R.string.brand); textSize = 14f; letterSpacing = 0.26f
-            setTypeface(typeface, android.graphics.Typeface.BOLD); setTextColor(palette.accentBright)
+            setTextColor(palette.accentBright)
         }
         top.addView(brand, TvUi.params(-2, dp(40)))
         top.addView(Space(context), LinearLayout.LayoutParams(0, 1, 1f))
@@ -522,7 +623,14 @@ class LauncherViews(
             background = TvUi.pillBackground(palette, 26f)
             TvUi.setSelectableBackground(this, { palette }, 26f, pill = true)
             addTextChangedListener(SimpleTextWatcher { text ->
-                if (!isProgrammaticSearchUpdate) { query = text; callbacks.queryChanged(text) }
+                if (!isProgrammaticSearchUpdate) {
+                    // Mark the render as query-driven here: the watcher assigns `query`
+                    // itself, so render() would otherwise see no change and replay the
+                    // entrance animation for every keystroke.
+                    query = text
+                    queryChanged = true
+                    callbacks.queryChanged(text)
+                }
             })
             setOnEditorActionListener { _, _, _ -> focusFirstApp(); true }
             setOnKeyListener { _, keyCode, event ->
@@ -548,10 +656,17 @@ class LauncherViews(
         filters.addView(sectionHeading(appsHeading), LinearLayout.LayoutParams(0, dp(39), 1f))
         listOf(allAppsChip, favoritesChip, mediaChip, gamesChip).forEachIndexed { index, chip ->
             chip.apply {
-                typeface = TvUi.icons(context)
+                // Mixed icon+text spans need the UI font as the base typeface; the glyph
+                // itself is switched to the symbol font per character by TvUi.iconLabel.
+                typeface = TvUi.inter(context)
                 textSize = 11.5f; gravity = Gravity.CENTER; setPadding(dp(12), 0, dp(12), 0)
-                TvUi.setSelectableBackground(this, { palette }, 21f, pill = true)
-                setOnClickListener { categoryIndex = index; callbacks.selectCategory(AppCategory.entries[index]); renderContent() }
+                // The chip must know it is the active filter: the focus listener repaints
+                // the background on every focus change, and without a `selected` provider
+                // the chip lost its accent fill as soon as the cursor moved to a sibling.
+                TvUi.setSelectableBackground(this, { palette }, 21f, pill = true, selected = { categoryIndex == index })
+                // Only report the choice: the next render carries the applied category
+                // back, so chip state and filtering cannot drift apart.
+                setOnClickListener { callbacks.selectCategory(AppCategory.entries[index]) }
             }
             filters.addView(chip, TvUi.params(-2, dp(38), left = dp(6)))
         }
@@ -590,26 +705,29 @@ class LauncherViews(
             setPadding(dp(28), dp(16), dp(12), dp(16))
         }
         info.addView(heroKicker.apply {
+            typeface = TvUi.interBold(context)
             text = context.getString(R.string.hero_kicker); textSize = 10.5f; letterSpacing = 0.18f
-            setTypeface(typeface, android.graphics.Typeface.BOLD); setTextColor(palette.accentBright)
+            setTextColor(palette.accentBright)
         }, TvUi.params(-1, -2, bottom = dp(6)))
         info.addView(heroTitle.apply {
+            typeface = TvUi.interBold(context)
             text = context.getString(R.string.hero_title); textSize = 27f; letterSpacing = -0.02f
-            typeface = TvUi.inter(context)
-            setTypeface(typeface, android.graphics.Typeface.BOLD); setTextColor(palette.text); setLineSpacing(0f, 1.05f)
+            setTextColor(palette.text); setLineSpacing(0f, 1.05f)
         }, TvUi.params(-1, -2, bottom = dp(5)))
         heroHint.apply { textSize = 12.5f; setTextColor(palette.muted) }
         info.addView(heroHint, TvUi.params(-1, -2))
         hero.addView(info, FrameLayout.LayoutParams((context.resources.displayMetrics.widthPixels * 0.62f).toInt(), -1))
         val orbWidth = (context.resources.displayMetrics.widthPixels * 0.30f).toInt().coerceAtMost(dp(310))
-        hero.addView(View(context).apply {
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(palette.glow.alpha(58), palette.glow.alpha(16), 0x00000000)).apply { shape = GradientDrawable.OVAL }
-        }, FrameLayout.LayoutParams(orbWidth, orbWidth, Gravity.END or Gravity.CENTER_VERTICAL).apply { marginEnd = -orbWidth / 3 })
-        hero.addView(View(context).apply {
-            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                intArrayOf(palette.accentBright.alpha(30), 0x00000000)).apply { shape = GradientDrawable.OVAL }
-        }, FrameLayout.LayoutParams(orbWidth / 2, orbWidth / 2, Gravity.END or Gravity.TOP).apply { marginEnd = dp(24); topMargin = dp(8) })
+        // The decorative orbs keep their geometry but must be repainted when the theme
+        // changes, so they are kept as fields instead of throwaway views.
+        heroOrbLarge = View(context).apply {
+            background = orbBackground(palette.glow.alpha(58), palette.glow.alpha(16))
+        }
+        hero.addView(heroOrbLarge, FrameLayout.LayoutParams(orbWidth, orbWidth, Gravity.END or Gravity.CENTER_VERTICAL).apply { marginEnd = -orbWidth / 3 })
+        heroOrbSmall = View(context).apply {
+            background = orbBackground(palette.accentBright.alpha(30), 0x00000000)
+        }
+        hero.addView(heroOrbSmall, FrameLayout.LayoutParams(orbWidth / 2, orbWidth / 2, Gravity.END or Gravity.TOP).apply { marginEnd = dp(24); topMargin = dp(8) })
         heroBadge.apply {
             typeface = TvUi.icons(context)
             text = GLYPH_PLAY.toString(); textSize = 30f; gravity = Gravity.CENTER; setTextColor(palette.onAccent)
@@ -627,9 +745,9 @@ class LauncherViews(
                 .start()
         }
         heroBadge.setOnClickListener {
-            val target = resumeApp
-                ?: preferences.recent.firstNotNullOfOrNull { pkg -> apps.find { it.packageName == pkg } }
-                ?: apps.firstOrNull()
+            // render() already resolved the resume target against every installed app,
+            // so no second lookup against the filtered list is needed here.
+            val target = resumeApp ?: apps.firstOrNull()
             if (target != null) callbacks.launch(target) else focusSearch()
         }
         hero.addView(heroBadge, FrameLayout.LayoutParams(dp(62), dp(62), Gravity.END or Gravity.CENTER_VERTICAL).apply { marginEnd = dp(30) })
@@ -656,37 +774,71 @@ class LauncherViews(
         )
     }
 
-    /** Gentle breathing pulse on the resume button while it is not focused. */
+    /**
+     * Short breathing pulse on the resume button while it is not focused. It runs a
+     * fixed number of breaths: this is a home screen that stays on screen for hours,
+     * so an endless animator would keep the view invalidating forever (the README
+     * promises no continuously running animator).
+     */
     private fun startHeroPulse() {
-        heroBadge.animate().cancel()
+        pulseActive = true
+        pulsesLeft = HERO_PULSES
+        // Start by growing so the fixed number of steps ends back at rest: an even count
+        // that began by shrinking would finish at 1.06 and snap down.
+        pulseStep(out = true)
+    }
+
+    private fun pulseStep(out: Boolean) {
+        // A live animation from the previous step is still attached to the badge, and
+        // the badge starts at rest, so every step begins from whichever end it is at.
+        if (pulsesLeft <= 0 || !pulseActive) {
+            heroBadge.animate().cancel()
+            heroBadge.scaleX = 1f
+            heroBadge.scaleY = 1f
+            return
+        }
+        pulsesLeft--
         heroBadge.animate()
-            .scaleX(1.06f).scaleY(1.06f)
+            .scaleX(if (out) 1.06f else 1f).scaleY(if (out) 1.06f else 1f)
             .setDuration(1100L)
             .setInterpolator(TvUi.interpolator)
             .withEndAction {
-                if (!heroBadge.isFocused && heroBadge.isAttachedToWindow) {
-                    heroBadge.animate()
-                        .scaleX(1f).scaleY(1f)
-                        .setDuration(1100L)
-                        .setInterpolator(TvUi.interpolator)
-                        .withEndAction {
-                            if (heroBadge.isAttachedToWindow && resumeApp != null) startHeroPulse()
-                        }
-                        .start()
+                if (!pulseActive) return@withEndAction
+                if (heroBadge.isFocused || !heroBadge.isAttachedToWindow || resumeApp == null) {
+                    pulseActive = false
+                    heroBadge.scaleX = 1f
+                    heroBadge.scaleY = 1f
+                } else {
+                    pulseStep(!out)
                 }
             }
             .start()
     }
 
-    private fun renderContent() {
+    /** Stops the pulse without resetting a focus-scaled badge. */
+    fun stopHeroPulse() {
+        pulseActive = false
+        pulsesLeft = 0
+        heroBadge.animate().cancel()
+        if (!heroBadge.isFocused) {
+            heroBadge.scaleX = 1f
+            heroBadge.scaleY = 1f
+        }
+    }
+
+    private fun renderContent(animate: Boolean = true) {
         if (!initialized) return
         val normalized = query.trim()
         val displayed = filteredApps(normalized)
-        appsHeading.text = (if (normalized.isNotEmpty()) {
+        // Query edits rebuild the row on every keystroke, so the entrance animation is
+        // reserved for real layout changes (first load, favourites, theme).
+        val animateRows = animate && !queryChanged
+        queryChanged = false
+        appsHeading.text = TvUi.iconLabel(context, (if (normalized.isNotEmpty()) {
             context.getString(R.string.results_heading, displayed.size)
         } else {
             context.getString(R.string.apps_heading, displayed.size)
-        }).uppercase()
+        }).uppercase())
         heroCount.text = if (apps.isEmpty()) {
             context.getString(R.string.hero_empty)
         } else {
@@ -699,7 +851,7 @@ class LauncherViews(
             apps.isEmpty() -> context.getString(R.string.empty_apps_hint)
             else -> context.getString(R.string.hero_hint_idle)
         }
-        rebuildAppStrip(appsStrip, displayed, compact = false, normalized = normalized)
+        rebuildAppStrip(appsStrip, displayed, compact = false, normalized = normalized, animate = animateRows)
         val installedPackages = apps.map { it.packageName }
         val favorites = preferences.favoritesInOrder(installedPackages).mapNotNull { packageName -> apps.find { it.packageName == packageName } }
         val recents = preferences.recent.mapNotNull { packageName -> apps.find { it.packageName == packageName } }
@@ -716,13 +868,13 @@ class LauncherViews(
         } else {
             recentStrip.removeAllViews()
         }
-        setResumeApp(recents.firstOrNull() ?: apps.firstOrNull())
-        favoritesTitle.text = context.getString(R.string.favorites_section).uppercase()
-        recentTitle.text = context.getString(R.string.recent_section).uppercase()
-        allAppsChip.text = context.getString(R.string.filter_all)
-        favoritesChip.text = context.getString(R.string.filter_favorites)
-        mediaChip.text = context.getString(R.string.filter_media)
-        gamesChip.text = context.getString(R.string.filter_games)
+        setResumeApp(renderResumeApp ?: recents.firstOrNull() ?: apps.firstOrNull())
+        favoritesTitle.text = TvUi.iconLabel(context, context.getString(R.string.favorites_section).uppercase())
+        recentTitle.text = TvUi.iconLabel(context, context.getString(R.string.recent_section).uppercase())
+        allAppsChip.text = TvUi.iconLabel(context, context.getString(R.string.filter_all))
+        favoritesChip.text = TvUi.iconLabel(context, context.getString(R.string.filter_favorites))
+        mediaChip.text = TvUi.iconLabel(context, context.getString(R.string.filter_media))
+        gamesChip.text = TvUi.iconLabel(context, context.getString(R.string.filter_games))
         listOf(allAppsChip, favoritesChip, mediaChip, gamesChip).forEachIndexed { index, chip ->
             val selected = categoryIndex == index
             chip.background = TvUi.pillBackground(palette, 21f, selected)
@@ -743,6 +895,7 @@ class LauncherViews(
         compact: Boolean,
         normalized: String = "",
         emptyHint: Boolean = false,
+        animate: Boolean = true,
     ) {
         // Remember which card held focus so a rebuild (favorite toggled, order
         // changed, theme applied) restores the cursor instead of dropping it to
@@ -776,8 +929,10 @@ class LauncherViews(
             card.tag = app.packageName
             if (app.packageName == focusedPackage) restored = card
             strip.addView(card, TvUi.params(width, height, right = dp(10)))
-            // Items glide in from the leading edge with a per-index delay.
-            TvUi.staggerIn(card, index)
+            // Items glide in from the leading edge with a per-index delay. Rows rebuilt
+            // for every keystroke skip it: re-entering 30+ cards per character was the
+            // cause of the "flicker while typing" on low-end boxes.
+            if (animate) TvUi.staggerIn(card, index)
         }
         if (restored != null) {
             restored.post {
@@ -884,32 +1039,45 @@ class LauncherViews(
                     menu.addView(panelOption(label, false) { heldDialog?.dismiss(); action() },
                         TvUi.params(-1, dp(42), bottom = dp(2)))
                 }
-                heldDialog = showPanelDialog(title = app.label, subtitle = null, content = menu)
+                heldDialog = showPanelDialog(
+                    title = app.label,
+                    subtitle = null,
+                    content = menu,
+                    dismissAction = { it.dismiss() },
+                )
                 true
             }
         }
         val scale = iconScale()
+        val showLabels = preferences.showAppLabels
         if (compact) {
             val iconTile = iconTile(app, dp(44f * scale))
             card.addView(iconTile, FrameLayout.LayoutParams(dp(44f * scale), dp(44f * scale),
                 Gravity.START or Gravity.CENTER_VERTICAL).apply { marginStart = dp(12) })
-            card.addView(TextView(context).apply {
-                text = app.label; textSize = 12.5f; gravity = Gravity.CENTER_VERTICAL
-                setTextColor(palette.text); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END
-            }, FrameLayout.LayoutParams(-1, -1).apply { marginStart = dp(12) + dp(44f * scale) + dp(11); marginEnd = dp(8) })
+            if (showLabels) {
+                card.addView(TextView(context).apply {
+                    text = app.label; textSize = 12.5f; gravity = Gravity.CENTER_VERTICAL
+                    setTextColor(palette.text); maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END
+                }, FrameLayout.LayoutParams(-1, -1).apply { marginStart = dp(12) + dp(44f * scale) + dp(11); marginEnd = dp(8) })
+            }
             if (preferences.isFavorite(app.packageName)) card.addView(favoriteDot(), FrameLayout.LayoutParams(dp(18), dp(18),
                 Gravity.TOP or Gravity.END).apply { topMargin = dp(4); marginEnd = dp(5) })
         } else {
             val tile = dp(64f * scale)
             val column = LinearLayout(context).apply {
-                orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER or Gravity.TOP
+                // With labels hidden the icon tile has to sit in the middle of the card,
+                // otherwise it hugs the top and leaves an empty band underneath.
+                orientation = LinearLayout.VERTICAL
+                gravity = if (showLabels) Gravity.CENTER or Gravity.TOP else Gravity.CENTER
                 setPadding(dp(10), dp(13), dp(10), dp(10))
             }
             column.addView(iconTile(app, tile), FrameLayout.LayoutParams(tile, tile))
-            column.addView(TextView(context).apply {
-                text = app.label; textSize = 11.5f; gravity = Gravity.CENTER
-                setTextColor(palette.text); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
-            }, TvUi.params(-1, -2, top = dp(9)))
+            if (showLabels) {
+                column.addView(TextView(context).apply {
+                    text = app.label; textSize = 11.5f; gravity = Gravity.CENTER
+                    setTextColor(palette.text); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+                }, TvUi.params(-1, -2, top = dp(9)))
+            }
             card.addView(column, FrameLayout.LayoutParams(-1, -1))
             if (preferences.isFavorite(app.packageName)) card.addView(favoriteDot(), FrameLayout.LayoutParams(dp(20), dp(20),
                 Gravity.TOP or Gravity.END).apply { topMargin = dp(5); marginEnd = dp(6) })
@@ -944,9 +1112,14 @@ class LauncherViews(
         background = GradientDrawable().apply { setColor(palette.accent); shape = GradientDrawable.OVAL }
     }
 
+    /**
+     * Section heading. The label is set through [TvUi.iconLabel], which types the icon
+     * codepoints with the symbol font and the words with Inter; setting the whole string
+     * in the icon font (as before) left Latin text to system fallback or tofu.
+     */
     private fun sectionHeading(view: TextView) = view.apply {
-        typeface = TvUi.icons(context) ?: TvUi.inter(context)
-        textSize = 10.5f; letterSpacing = 0.12f; setTypeface(typeface, android.graphics.Typeface.BOLD)
+        textSize = 11f; letterSpacing = 0.12f
+        typeface = TvUi.interBold(context)
         setTextColor(palette.muted); gravity = Gravity.CENTER_VERTICAL
     }
 
@@ -956,23 +1129,46 @@ class LauncherViews(
     }
 
     private fun configureActionChip(view: TextView, label: String, action: () -> Unit) = view.apply {
-        typeface = TvUi.icons(context) ?: TvUi.inter(context)
-        text = label; textSize = 11.5f; gravity = Gravity.CENTER; setPadding(dp(14), 0, dp(14), 0)
+        // Base font is Inter; TvUi.iconLabel swaps just the glyph onto the symbol font.
+        typeface = TvUi.inter(context)
+        text = TvUi.iconLabel(context, label)
+        textSize = 11.5f; gravity = Gravity.CENTER; setPadding(dp(14), 0, dp(14), 0)
         setTextColor(palette.text); TvUi.setSelectableBackground(this, { palette }, 22f, pill = true)
         setOnClickListener { action() }
     }
 
     private fun settingsLabel(textValue: String, color: Int = palette.text, size: Float = 14f) = TextView(context).apply {
-        typeface = TvUi.inter(context)
+        typeface = TvUi.interBold(context)
         text = textValue; textSize = size; letterSpacing = 0.08f; setTextColor(color)
-        gravity = Gravity.CENTER_VERTICAL; setTypeface(typeface, android.graphics.Typeface.BOLD)
+        gravity = Gravity.CENTER_VERTICAL
     }
 
-    private fun settingsOption(label: String, selected: Boolean, action: () -> Unit) = TextView(context).apply {
-        text = if (selected) "✓   $label" else "     $label"
-        textSize = 13.5f; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(14), 0, dp(14), 0)
-        setTextColor(if (selected) palette.accentBright else palette.text)
-        TvUi.setSelectableBackground(this, { palette }, 13f); setOnClickListener { action() }
+    /**
+     * Settings row whose check mark is derived from the live preference and can be
+     * repainted in place. A panel that only painted its marks once kept showing stale
+     * state after a toggle, which made every option look unresponsive.
+     */
+    private fun settingsRow(
+        refreshers: MutableList<() -> Unit>,
+        label: () -> String,
+        selected: () -> Boolean,
+        action: () -> Unit,
+    ): TextView {
+        val row = TextView(context).apply {
+            textSize = 13.5f; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(14), 0, dp(14), 0)
+        }
+        var repaint: () -> Unit = {}
+        fun paint() {
+            row.text = if (selected()) "✓   ${label()}" else "     ${label()}"
+            repaint()
+        }
+        repaint = TvUi.setSelectableBackground(row, { palette }, 13f, selected = selected)
+        // A click changes a preference; the next paint reads it back, so the panel can
+        // never disagree with what was stored.
+        row.setOnClickListener { action(); refreshers.forEach { refresh -> refresh() } }
+        refreshers += { paint() }
+        paint()
+        return row
     }
 
     /**

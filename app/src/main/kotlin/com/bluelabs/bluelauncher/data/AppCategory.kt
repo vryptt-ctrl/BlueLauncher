@@ -20,8 +20,10 @@ enum class AppCategory {
             app.category == ApplicationInfo.CATEGORY_VIDEO ||
             app.category == ApplicationInfo.CATEGORY_IMAGE
         ) return true
-        val text = "${app.packageName} ${app.label}".lowercase()
-        return MEDIA_HINTS.any(text::contains)
+        // Only the package is inspected: labels like "TV Remote" or "TV Settings" are
+        // launchers/utilities, not media apps.
+        val packageName = app.packageName.lowercase()
+        return MEDIA_HINTS.any(packageName::contains)
     }
 
     private fun isGame(app: LauncherApp): Boolean {
@@ -31,10 +33,18 @@ enum class AppCategory {
     }
 
     companion object {
+        /**
+         * Package-name fragments that reliably mean "TV/streaming app". Matching is done on
+         * the package only, and the generic words the previous list used ("tv", "stream",
+         * "player", "audio", "video", "music") are gone: they matched the system TV settings,
+         * the remote and every preinstalled player, so almost everything landed in Media.
+         * Entries must be space-free, because a package name never contains a space.
+         */
         private val MEDIA_HINTS = listOf(
-            "video", "movies", "movie", "cinema", "stream", "music", "audio", "player",
-            "netflix", "prime video", "youtube", "plex", "spotify", "tv", "podcast",
+            "netflix", "youtube", "plex", "spotify", "primevideo", "amazonvideo", "disney",
+            "hulu", "vlc", "kodi", "twitch", "deezer", "tidal", "podcast",
         )
+
         private val GAME_HINTS = listOf("game", "gaming", "steam", "xbox", "emulator", "retro")
     }
 }

@@ -46,6 +46,35 @@ class LauncherPreferencesTest {
     }
 
     @Test
+    fun movingAFavoriteKeepsPinsForUninstalledApps() {
+        // "gone" is pinned but not installed (uninstalled/disabled): moving "c" must not
+        // drop it from the stored list.
+        val favorites = listOf("a", "gone", "b", "c")
+        assertEquals(
+            listOf("a", "gone", "c", "b"),
+            LauncherPreferences.moveFavoriteIn(favorites, "c", -1, listOf("a", "b", "c")),
+        )
+    }
+
+    @Test
+    fun movingAFavoriteAcrossAHiddenPinSkipsIt() {
+        // "b" is only one visible slot away from "c" even though a hidden pin sits between.
+        // Swapping keeps "gone" at index 2, so it returns to the same place on reinstall.
+        val favorites = listOf("a", "b", "gone", "c")
+        val moved = LauncherPreferences.moveFavoriteIn(favorites, "c", -1, listOf("a", "b", "c"))
+        assertEquals(listOf("a", "c", "gone", "b"), moved)
+        assertEquals(2, moved.indexOf("gone"))
+    }
+
+    @Test
+    fun movingAFavoriteAtTheVisibleEdgeDoesNothing() {
+        val favorites = listOf("gone", "a", "b")
+        assertSame(favorites, LauncherPreferences.moveFavoriteIn(favorites, "a", -1, listOf("a", "b")))
+        assertSame(favorites, LauncherPreferences.moveFavoriteIn(favorites, "b", 1, listOf("a", "b")))
+        assertSame(favorites, LauncherPreferences.moveFavoriteIn(favorites, "missing", 1, listOf("a", "b")))
+    }
+
+    @Test
     fun recentHistoryIsBoundedMostRecentFirstAndDeduplicated() {
         var history = (0 until 20).fold(emptyList<String>()) { current, index ->
             LauncherPreferences.recentWith("app$index", current)

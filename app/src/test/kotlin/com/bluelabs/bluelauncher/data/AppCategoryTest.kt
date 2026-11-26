@@ -24,4 +24,20 @@ class AppCategoryTest {
         assertEquals(listOf("movie"), AppCategory.MEDIA.filter(apps, emptySet()).map { it.packageName })
         assertEquals(listOf("com.example.game"), AppCategory.GAMES.filter(apps, emptySet()).map { it.packageName })
     }
+
+    @Test
+    fun tvSystemAppsNoLongerCountAsMedia() {
+        // The old hint list matched these through "tv"/"video" in the label, so the
+        // system TV settings and the remote showed up under Media.
+        val apps = listOf(
+            app("com.android.tv.settings", "TV Settings"),
+            app("com.example.tvremote", "TV Remote"),
+            app("com.example.streamplayer", "Stream Player"),
+            app("com.netflix.ninja", "Netflix"),
+        )
+        assertEquals(
+            listOf("com.netflix.ninja"),
+            AppCategory.MEDIA.filter(apps, emptySet()).map { it.packageName },
+        )
+    }
 }

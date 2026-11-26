@@ -50,6 +50,8 @@ rustTargets.forEach { (target, abi) ->
     val compile = tasks.register<Exec>("buildRust-$abi") {
         group = "build"
         inputs.file(rustManifest)
+        // Cargo.lock changes alter the resolved crate graph and must retrigger the build.
+        inputs.file(layout.projectDirectory.file("src/main/rust/Cargo.lock"))
         inputs.dir(rustSource)
         outputs.file(outputLibrary)
         doFirst {
@@ -65,11 +67,16 @@ rustTargets.forEach { (target, abi) ->
             environment("CARGO_PROFILE_RELEASE_STRIP", "symbols")
             environment("CARGO_TARGET_${target.uppercase().replace('-', '_')}_LINKER", linkerFor(target, bin))
             // Android 15+ devices may use 16 KB memory pages; 32-bit ARM keeps its 4 KB layout.
-            environment(
-                "RUSTFLAGS",
-                if (target == "armv7-linux-androideabi") ""
-                else "-C link-arg=-Wl,-z,max-page-size=16384",
-            )
+            // Append instead of replacing so a caller's RUSTFLAGS survive.
+            if (target != "armv7-linux-androideabi") {
+                val inherited = providers.environmentVariable("RUSTFLAGS").orNull.orEmpty()
+                environment(
+                    "RUSTFLAGS",
+                    listOf(inherited, "-C link-arg=-Wl,-z,max-page-size=16384")
+                        .filter(String::isNotBlank)
+                        .joinToString(" "),
+                )
+            }
         }
         commandLine(
             "cargo", "build",

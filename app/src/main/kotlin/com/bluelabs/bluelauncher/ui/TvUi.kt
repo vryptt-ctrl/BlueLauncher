@@ -1,13 +1,15 @@
 package com.bluelabs.bluelauncher.ui
 
 import android.content.Context
-import android.content.res.ColorStateList
-import android.graphics.Outline
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.style.MetricAffectingSpan
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewOutlineProvider
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.HorizontalScrollView
@@ -54,7 +56,7 @@ internal object TvUi {
         pill: Boolean = false,
         selected: (() -> Boolean)? = null,
         onFocus: ((Boolean) -> Unit)? = null,
-    ) {
+    ): () -> Unit {
         fun update(focused: Boolean) {
             val palette = paletteProvider()
             val isSelected = selected?.invoke() == true
@@ -67,7 +69,10 @@ internal object TvUi {
                 view.setTextColor(
                     when {
                         pill -> if (focused || isSelected) palette.onAccent else palette.text
-                        focused -> palette.accentBright
+                        // Card options keep their accent "checked" colour when unfocused;
+                        // without this a selected settings row reverted to body text as
+                        // soon as the cursor moved away.
+                        focused || isSelected -> palette.accentBright
                         else -> palette.text
                     },
                 )
@@ -93,6 +98,9 @@ internal object TvUi {
                 .start()
             onFocus?.invoke(focused)
         }
+        // The returned refresher lets a caller repaint a row whose checked state
+        // changed while it stayed on screen (settings toggles).
+        return { update(view.hasFocus()) }
     }
 
     /** Slight overshoot used when a view takes focus. */
@@ -159,16 +167,6 @@ internal object TvUi {
         }
     }
 
-    fun roundIcon(view: View, radiusDp: Float = 14f) {
-        val radius = dp(view, radiusDp).toFloat()
-        view.clipToOutline = true
-        view.outlineProvider = object : ViewOutlineProvider() {
-            override fun getOutline(view: View, outline: Outline) {
-                outline.setRoundRect(0, 0, view.width, view.height, radius)
-            }
-        }
-    }
-
     fun params(width: Int, height: Int, left: Int = 0, top: Int = 0, right: Int = 0, bottom: Int = 0) =
         ViewGroup.MarginLayoutParams(width, height).apply {
             marginStart = left
@@ -176,13 +174,6 @@ internal object TvUi {
             topMargin = top
             bottomMargin = bottom
         }
-
-    fun TextView.colors(palette: Palette, enabled: Boolean = true) {
-        setTextColor(if (enabled) palette.text else palette.muted)
-        val states = arrayOf(intArrayOf(android.R.attr.state_focused), intArrayOf())
-        val colors = intArrayOf(palette.accentBright, if (enabled) palette.text else palette.muted)
-        setTextColor(ColorStateList(states, colors))
-    }
 
     /** Linear blend of two opaque ARGB colors. */
     fun blend(first: Int, second: Int, fraction: Float): Int {
@@ -193,19 +184,84 @@ internal object TvUi {
         return (0xFF shl 24) or (red.toInt() shl 16) or (green.toInt() shl 8) or blue.toInt()
     }
 
-    /** Brand typeface: bundled Inter (weights 300/400/700) resolved once per process. */
-    private var cachedInter: android.graphics.Typeface? = null
-
-    fun inter(context: Context): android.graphics.Typeface {
-        cachedInter?.let { return it }
-        val loaded = runCatching { android.graphics.Typeface.createFromAsset(context.assets, "fonts/inter_400.ttf") }.getOrNull()
-            ?: android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.NORMAL)
-        cachedInter = loaded
-        return loaded
+    /**
+     * Lets one TextView mix the bundled symbol font with the brand font: only the
+     * private-use codepoints are switched to `blue_icons.ttf`, everything else keeps the
+     * view's own typeface. That matters for headings, which were previously set entirely
+     * in the icon font (Latin fell back to Roboto or tofu) and for bold labels, which must
+     * stay bold. Returns the input unchanged when there is no glyph to swap.
+     */
+    fun iconLabel(context: Context, text: CharSequence): CharSequence {
+        val glyphTypeface = icons(context) ?: return text
+        val plain = text.toString()
+        if (plain.isEmpty()) return text
+        val runs = glyphRuns(plain)
+        if (runs.isEmpty()) return text
+        val span = SpannableString(plain)
+        runs.forEach { (start, end) ->
+            span.setSpan(TypefacesSpan(glyphTypeface), start, end, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+        }
+        return span
     }
 
+    /**
+     * Half-open ranges of private-use glyphs in [text], one entry per contiguous run.
+     * Pure so it can be unit tested without a Context/Typeface.
+     */
+    fun glyphRuns(text: CharSequence): List<Pair<Int, Int>> {
+        val runs = mutableListOf<Pair<Int, Int>>()
+        var runStart = -1
+        for (index in text.indices) {
+            val isIcon = isIconCodepoint(text[index])
+            if (isIcon && runStart < 0) runStart = index
+            if (!isIcon && runStart >= 0) {
+                runs += runStart to index
+                runStart = -1
+            }
+        }
+        if (runStart >= 0) runs += runStart to text.length
+        return runs
+    }
+
+    /** `TypefaceSpan(Typeface)` needs API 28; minSdk is 23, so this paint override replaces it. */
+    private class TypefacesSpan(private val typeface: Typeface) : MetricAffectingSpan() {
+        override fun updateDrawState(textPaint: TextPaint) {
+            textPaint.typeface = typeface
+        }
+
+        override fun updateMeasureState(textPaint: TextPaint) {
+            textPaint.typeface = typeface
+        }
+    }
+
+    /** Private-use codepoints are exactly the subset bundled in `blue_icons.ttf`. */
+    fun isIconCodepoint(value: Char): Boolean = value.code in 0xE000..0xF8FF
+
+    /** Brand typefaces: bundled Inter weights, resolved once per process. */
+    private var cachedInter: android.graphics.Typeface? = null
+    private var cachedInterBold: android.graphics.Typeface? = null
+    private var cachedInterLight: android.graphics.Typeface? = null
+
+    private fun loadInter(context: Context, asset: String, fallbackStyle: Int): android.graphics.Typeface =
+        runCatching { android.graphics.Typeface.createFromAsset(context.assets, asset) }.getOrNull()
+            ?: android.graphics.Typeface.create("sans-serif", fallbackStyle)
+
+    fun inter(context: Context): android.graphics.Typeface =
+        cachedInter ?: loadInter(context, "fonts/inter_400.ttf", android.graphics.Typeface.NORMAL).also { cachedInter = it }
+
+    /**
+     * Real Inter Bold instead of a synthetic bold. The bundled asset is a separate
+     * weight, so calling [Typeface.create] on the regular file (the previous approach)
+     * only emboldened the glyphs algorithmically.
+     */
+    fun interBold(context: Context): android.graphics.Typeface =
+        cachedInterBold
+            ?: loadInter(context, "fonts/inter_700.ttf", android.graphics.Typeface.BOLD).also { cachedInterBold = it }
+
+    /** Inter Light (weight 300) for the clock; previously this resolved to regular 400. */
     fun interLight(context: Context): android.graphics.Typeface =
-        android.graphics.Typeface.create(inter(context), android.graphics.Typeface.create("sans-serif-light", android.graphics.Typeface.NORMAL).style)
+        cachedInterLight
+            ?: loadInter(context, "fonts/inter_300.ttf", android.graphics.Typeface.NORMAL).also { cachedInterLight = it }
 
     /** Material Symbols Rounded icon font (subset bundled as assets/fonts/blue_icons.ttf). */
     private var cachedIcons: android.graphics.Typeface? = null

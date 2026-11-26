@@ -54,9 +54,6 @@ class LauncherPreferences(context: Context) {
     var showAppLabels: Boolean
         get() = store.getBoolean(KEY_SHOW_LABELS, true)
         set(value) = store.edit().putBoolean(KEY_SHOW_LABELS, value).apply()
-    var onboardingComplete: Boolean
-        get() = store.getBoolean(KEY_ONBOARDING, false)
-        set(value) = store.edit().putBoolean(KEY_ONBOARDING, value).apply()
 
     fun isFavorite(packageName: String) = packageName in favorites
 
@@ -71,9 +68,9 @@ class LauncherPreferences(context: Context) {
     }
 
     fun moveFavorite(packageName: String, direction: Int, installed: List<String>) {
-        val current = favoritesInOrder(installed)
-        val moved = moveWithin(current, packageName, direction)
-        if (moved != current) favorites = moved
+        // Reorder only the installed favourites but write back the full list, otherwise
+        // a pin whose app is temporarily uninstalled/disabled was silently dropped.
+        favorites = moveFavoriteIn(favorites, packageName, direction, installed)
     }
 
     fun favoritesInOrder(installed: List<String>): List<String> {
@@ -84,8 +81,6 @@ class LauncherPreferences(context: Context) {
     fun recordLaunch(packageName: String) {
         recent = recentWith(packageName, recent)
     }
-
-    fun saveAppOrder(packageNames: List<String>) { appOrder = packageNames.distinct() }
 
     fun orderedApps(packageNames: List<String>): List<String> = mergeOrder(appOrder, packageNames)
 
@@ -125,6 +120,36 @@ class LauncherPreferences(context: Context) {
         fun recentWith(packageName: String, current: List<String>): List<String> =
             (listOf(packageName) + current.filterNot { it == packageName }).take(MAX_RECENT)
 
+        /**
+         * Swaps [packageName] with the neighbouring *visible* favourite. The two entries
+         * trade places, so pins for packages that are not installed stay at their index
+         * and return to the same spot once reinstalled. Returns the full list so the
+         * caller can persist it without losing those hidden pins.
+         */
+        fun moveFavoriteIn(
+            favorites: List<String>,
+            packageName: String,
+            direction: Int,
+            installed: List<String>,
+        ): List<String> {
+            if (direction == 0) return favorites
+            val installedSet = installed.toHashSet()
+            val visibleIndexes = favorites.indices.filter { favorites[it] in installedSet }
+            val currentSlot = visibleIndexes.indexOfFirst { favorites[it] == packageName }
+            if (currentSlot < 0) return favorites
+            val targetSlot = currentSlot + direction.coerceIn(-1, 1)
+            if (targetSlot !in visibleIndexes.indices) return favorites
+            val from = visibleIndexes[currentSlot]
+            val to = visibleIndexes[targetSlot]
+            // Swap the two slots instead of moving one entry: a move shifts every entry in
+            // between, which also dragged the pins of uninstalled apps around and made them
+            // reappear in a different spot once reinstalled.
+            val swapped = favorites.toMutableList()
+            swapped[from] = favorites[to]
+            swapped[to] = favorites[from]
+            return swapped
+        }
+
         private const val KEY_FAVORITES = "favorites_v2"
         private const val KEY_LEGACY_FAVORITES = "favorites"
         private const val KEY_RECENT = "recent"
@@ -138,6 +163,5 @@ class LauncherPreferences(context: Context) {
         private const val KEY_WALLPAPER_IMAGE = "wallpaper_image"
         private const val KEY_ICON_SIZE = "icon_size"
         private const val KEY_SHOW_LABELS = "show_app_labels"
-        private const val KEY_ONBOARDING = "onboarding_complete"
     }
 }
