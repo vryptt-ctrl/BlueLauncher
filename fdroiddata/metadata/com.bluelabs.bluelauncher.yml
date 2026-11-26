@@ -1,11 +1,3 @@
-# Copy this file to metadata/com.bluelabs.bluelauncher.yml in a fork of
-# https://gitlab.com/fdroid/fdroiddata and open a merge request.
-#
-# Keep it in sync with .fdroid.yml and app/build.gradle.kts. The Summary and
-# Description below are duplicated from fastlane/metadata/android/en-US
-# because version 1.1.1 was tagged before that folder existed (see
-# MaintainerNotes). Remove them again once a release containing fastlane/
-# has been built.
 Categories:
   - Launcher
 License: GPL-3.0-only
@@ -15,10 +7,7 @@ IssueTracker: https://github.com/vryptt-ctrl/BlueLauncher/issues
 Changelog: https://github.com/vryptt-ctrl/BlueLauncher/blob/HEAD/CHANGELOG.md
 
 AutoName: BlueLauncher
-
-Summary: Lightweight TV launcher with D-pad focus, favorites and Rust search
-
-Description: |
+Description: |-
   BlueLauncher is a small, native home screen replacement for Android TV. Kotlin runs the Android lifecycle, app discovery, D-pad UI and preferences, while a compact Rust module ranks and searches apps through JNI. There are no network calls, analytics, ads, trackers, databases or background services.
 
   <b>Fast</b>
@@ -59,7 +48,9 @@ Builds:
   - versionName: 1.1.1
     versionCode: 3
     commit: v1.1.1
-    ndk: 27.2.12479018
+    sudo:
+      - apt-get update
+      - apt-get install -y --no-install-recommends gcc libc-dev
     output: app/build/outputs/apk/release/app-release-unsigned.apk
     prebuild:
       - curl -fsSL --proto '=https' --tlsv1.2 -o $HOME/rustup-init https://static.rust-lang.org/rustup/archive/1.29.3/x86_64-unknown-linux-gnu/rustup-init
@@ -71,12 +62,15 @@ Builds:
       - export PATH="$HOME/.cargo/bin:$PATH"
       - export ANDROID_NDK_HOME=$$NDK$$
       - gradle assembleRelease
+    ndk: 27.2.12479018
 
-MaintainerNotes: |
+MaintainerNotes: |-
   Raw "build:" is used instead of "gradle:" because fdroidserver removes
   gradlew/gradlew.bat and the Rust toolchain must be on PATH for the Gradle
   build. "gradle" on the build server is gradlew-fdroid, which reads
   gradle/wrapper/gradle-wrapper.properties (Gradle 9.6.0).
+
+  sudo installs gcc and libc-dev so cargo host build scripts have the host linker cc.
 
   prebuild installs Rust 1.100.0 through rustup from a checksum-pinned
   rustup-init; the NDK is provided by "ndk:" and used for the Cargo linkers.
@@ -86,10 +80,9 @@ MaintainerNotes: |
   Users switching from the GitHub APK must uninstall it first.
 
   fastlane/metadata/android/en-US/ landed after v1.1.1 was tagged, so F-Droid
-  cannot read it for this build and only the Summary/Description above are
-  shown. The next tagged release will pick up the icon, feature graphic, TV
-  screenshots and changelog from the repo; delete Summary and Description
-  from this file at that point.
+  cannot read it for this build and only the Description and localized summary
+  are shown. The next tagged release will pick up the icon, feature graphic, TV
+  screenshots and changelog from the repo.
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
