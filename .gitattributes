@@ -1,0 +1,15 @@
+# F-Droid metadata must be LF-only (see the fdroiddata MR checklist).
+.gitattributes text eol=lf
+.fdroid.yml text eol=lf
+fdroiddata/** text eol=lf
+
+# Fastlane listing texts only — never the images.
+fastlane/**/*.txt text eol=lf
+fastlane/**/*.md text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+
+# Shell scripts and the Gradle wrapper stay LF everywhere.
+*.sh text eol=lf
+gradlew text eol=lf
