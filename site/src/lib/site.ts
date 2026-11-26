@@ -19,6 +19,10 @@ export const SITE = {
   debugApkSize: 'about 3.9 MB',
   packageId: 'com.bluelabs.bluelauncher',
   minSdk: 23,
+  /** Human-readable release name for minSdk, for copy that reads to users. */
+  minSdkName: '6.0 Marshmallow',
+  /** Just the number, for tight UI chips. */
+  minSdkShort: '6.0',
   compileSdk: 36,
   ndkVersion: '27.2.12479018',
   jdk: 17,

@@ -87,7 +87,7 @@ const schema = {
       alternateName: 'BlueLauncher Android TV launcher',
       applicationCategory: 'UtilitiesApplication',
       applicationSubCategory: 'Home screen launcher',
-      operatingSystem: `Android TV, Android ${SITE.minSdk}+`,
+      operatingSystem: `Android TV, Android ${SITE.minSdkName} (API ${SITE.minSdk})+`,
       softwareVersion: SITE.version,
       description: SITE.description,
       url: `${siteRoot}/`,
@@ -99,7 +99,7 @@ const schema = {
       publisher: { '@id': `${siteRoot}/#org` },
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
       screenshot: [ogImage],
-      softwareRequirements: `Android ${SITE.minSdk} or newer; arm64-v8a, armeabi-v7a or x86_64`,
+      softwareRequirements: `Android ${SITE.minSdkName} (API ${SITE.minSdk}) or newer; arm64-v8a, armeabi-v7a or x86_64`,
       fileSize: '1.2MB',
       featureList: [
         'Offline operation with no network permission',

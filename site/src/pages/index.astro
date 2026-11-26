@@ -15,7 +15,7 @@ import { ABI_TABLE } from '@/data/content';
 
 const hero = SHOTS[0];
 const chips = [
-  { icon: 'tv' as const, text: `Android ${SITE.minSdk}+` },
+  { icon: 'tv' as const, text: `Android ${SITE.minSdkShort}+` },
   { icon: 'cpu' as const, text: 'Kotlin + Rust' },
   { icon: 'offline' as const, text: 'No network permission' },
   { icon: 'github' as const, text: 'GPL-3.0' },
@@ -33,7 +33,7 @@ const FAQ = [
   },
   {
     q: 'Which Android versions are supported?',
-    a: `Android ${SITE.minSdk} (6.0 Marshmallow) and newer, on arm64-v8a, armeabi-v7a and x86_64 devices.`,
+    a: `Android ${SITE.minSdkName} (API ${SITE.minSdk}) and newer, on arm64-v8a, armeabi-v7a and x86_64 devices.`,
   },
   {
     q: 'Will it replace my current TV home screen?',
