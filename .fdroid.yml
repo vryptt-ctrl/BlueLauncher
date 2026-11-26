@@ -21,11 +21,13 @@ Builds:
   - versionName: 1.1.1
     versionCode: 3
     commit: v1.1.1
-    ndk: 27.2.12479018
+    sudo:
+      - apt-get update
+      - apt-get install -y --no-install-recommends gcc libc-dev
     output: app/build/outputs/apk/release/app-release-unsigned.apk
     prebuild:
       - curl -fsSL --proto '=https' --tlsv1.2 -o $HOME/rustup-init https://static.rust-lang.org/rustup/archive/1.29.3/x86_64-unknown-linux-gnu/rustup-init
-      - echo "b1c8cb14e30889e7e2999e6b69e62d9e9b9ffc0f4df8180564d306d9680e6c55  $HOME/rustup-init" | sha256sum --check --strict
+      - echo "b1c8cb14e30889e7e2999e6b69e62d9e9b9ffc0f4df8180564d306d9680e6c55 *$HOME/rustup-init" | sha256sum --check --strict
       - chmod +x $HOME/rustup-init
       - $HOME/rustup-init -y --no-modify-path --profile minimal --default-toolchain 1.100.0
       - $HOME/.cargo/bin/rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
@@ -33,6 +35,7 @@ Builds:
       - export PATH="$HOME/.cargo/bin:$PATH"
       - export ANDROID_NDK_HOME=$$NDK$$
       - gradle assembleRelease
+    ndk: 27.2.12479018
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
