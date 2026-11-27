@@ -103,8 +103,8 @@ android {
         applicationId = "com.bluelabs.bluelauncher"
         minSdk = 23
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.1.2"
+        versionCode = 5
+        versionName = "1.2.0"
         ndk {
             abiFilters += rustTargets.values
         }

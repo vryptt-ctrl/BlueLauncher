@@ -1,0 +1,6 @@
+Modular UI architecture and improved maintainability.
+Extracted independent UI components: AppStripView, HeroView, SearchBarView.
+Isolated reusable custom TV-themed dialog panels and Settings/About dialogs.
+Introduced MVVM architecture with LauncherViewModel and LauncherFilterEngine.
+Added test suite for filter and ranking logic.
+Website structure streamlined and documentation updated.

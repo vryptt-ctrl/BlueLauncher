@@ -4,6 +4,8 @@ All notable changes to BlueLauncher are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-27
+
 ### Added
 - Modular UI architecture: extracted components (`AppStripView`, `HeroView`, `SearchBarView`) and dialogs (`SettingsDialog`, `AboutDialog`, `PanelDialog`) out of `LauncherViews` for better maintainability and extensibility.
 - `LauncherViewModel` and `LauncherFilterEngine` to separate presentation, state management, and filtering/ranking logic from `MainActivity`.
@@ -97,7 +99,8 @@ All notable changes to BlueLauncher are documented in this file. The format foll
 - Focus animation adds translation-Z lift (6dp) and glow-tinted spot shadow (API 28+).
 - Settings dialog sections use uppercase kickers and hairline dividers.
 
-[Unreleased]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/vryptt-ctrl/BlueLauncher/compare/v1.0.0...v1.1.0

@@ -9,11 +9,11 @@ export const SITE = {
   tagline: 'A lightweight, offline home screen for Android TV.',
   description:
     'A lightweight, open-source home launcher for Android TV. Fast D-pad navigation, favorites, search and themes — fully offline, with no ads and no analytics.',
-  version: '1.1.2',
-  versionDate: '2026-11-26',
-  releaseDate: '2026-11-26',
+  version: '1.2.0',
+  versionDate: '2026-11-27',
+  releaseDate: '2026-11-27',
   /** APK attached to the latest GitHub release, and its measured size. */
-  releaseApk: 'BlueLauncher-v1.1.2-release.apk',
+  releaseApk: 'BlueLauncher-v1.2.0-release.apk',
   releaseApkSize: 'about 1.2 MB',
   /** Debug build: all three ABIs, unshrunk. */
   debugApkSize: 'about 3.9 MB',
