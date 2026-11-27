@@ -1,0 +1,3 @@
+Redesigned Settings dialog with color swatches, modern TV switch toggles, and segmented card size picker.
+Fixed D-pad focus frame drops and scroll jank across app strips.
+Refined hero resume card, search bar styling, and TV dialogs.
