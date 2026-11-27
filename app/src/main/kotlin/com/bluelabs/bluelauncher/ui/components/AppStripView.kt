@@ -43,15 +43,15 @@ internal class AppStripView(
     }
 
     fun rowHeightDp(compact: Boolean): Int {
-        val base = if (compact) 68f else 122f
-        val minimum = if (compact) 92 else 144
+        val base = if (compact) 72f else 126f
+        val minimum = if (compact) 94 else 148
         val needed = (base * iconScale() * 1.07f + 12f).toInt() + 1
         return maxOf(minimum, needed)
     }
 
     private fun cardDimensions(compact: Boolean): Pair<Int, Int> {
         val scale = iconScale()
-        return dp((if (compact) 176f else 148f) * scale) to dp((if (compact) 68f else 122f) * scale)
+        return dp((if (compact) 184f else 154f) * scale) to dp((if (compact) 72f else 126f) * scale)
     }
 
     fun rebuildStrip(
@@ -113,8 +113,12 @@ internal class AppStripView(
     }
 
     private fun appCard(app: LauncherApp, compact: Boolean): View {
+        var labelView: TextView? = null
         val card = FrameLayout(context).apply {
             TvUi.setSelectableBackground(this, { palette }, 18f, onFocus = { focused ->
+                labelView?.setTextColor(
+                    if (focused) palette.text else TvUi.blend(palette.text, palette.muted, 0.25f),
+                )
                 if (focused) {
                     (parent as? View)?.tag = app.packageName
                     TvUi.centerCardInStrip(this)
@@ -152,7 +156,7 @@ internal class AppStripView(
                             heldDialog?.dismiss()
                             action()
                         },
-                        TvUi.params(-1, dp(42f), bottom = dp(2f)),
+                        TvUi.params(-1, dp(42f), bottom = dp(4f)),
                     )
                 }
                 heldDialog = PanelDialog.show(
@@ -169,27 +173,30 @@ internal class AppStripView(
 
         val scale = iconScale()
         val showLabels = preferences.showAppLabels
+        val unfocusedTextColor = TvUi.blend(palette.text, palette.muted, 0.25f)
         if (compact) {
-            val iconTile = iconTile(app, dp(44f * scale))
+            val iconTile = iconTile(app, dp(46f * scale))
             card.addView(
                 iconTile,
-                FrameLayout.LayoutParams(dp(44f * scale), dp(44f * scale), Gravity.START or Gravity.CENTER_VERTICAL).apply {
+                FrameLayout.LayoutParams(dp(46f * scale), dp(46f * scale), Gravity.START or Gravity.CENTER_VERTICAL).apply {
                     marginStart = dp(12f)
                 },
             )
             if (showLabels) {
+                labelView = TextView(context).apply {
+                    typeface = TvUi.inter(context)
+                    text = app.label
+                    textSize = 12.5f
+                    gravity = Gravity.CENTER_VERTICAL
+                    setTextColor(unfocusedTextColor)
+                    maxLines = 2
+                    ellipsize = android.text.TextUtils.TruncateAt.END
+                }
                 card.addView(
-                    TextView(context).apply {
-                        text = app.label
-                        textSize = 12.5f
-                        gravity = Gravity.CENTER_VERTICAL
-                        setTextColor(palette.text)
-                        maxLines = 2
-                        ellipsize = android.text.TextUtils.TruncateAt.END
-                    },
+                    labelView,
                     FrameLayout.LayoutParams(-1, -1).apply {
-                        marginStart = dp(12f) + dp(44f * scale) + dp(11f)
-                        marginEnd = dp(8f)
+                        marginStart = dp(12f) + dp(46f * scale) + dp(11f)
+                        marginEnd = dp(10f)
                     },
                 )
             }
@@ -197,29 +204,31 @@ internal class AppStripView(
                 card.addView(
                     favoriteDot(),
                     FrameLayout.LayoutParams(dp(18f), dp(18f), Gravity.TOP or Gravity.END).apply {
-                        topMargin = dp(4f)
-                        marginEnd = dp(5f)
+                        topMargin = dp(5f)
+                        marginEnd = dp(6f)
                     },
                 )
             }
         } else {
-            val tile = dp(64f * scale)
+            val tile = dp(66f * scale)
             val column = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = if (showLabels) Gravity.CENTER or Gravity.TOP else Gravity.CENTER
-                setPadding(dp(10f), dp(13f), dp(10f), dp(10f))
+                setPadding(dp(10f), dp(14f), dp(10f), dp(10f))
             }
             column.addView(iconTile(app, tile), FrameLayout.LayoutParams(tile, tile))
             if (showLabels) {
+                labelView = TextView(context).apply {
+                    typeface = TvUi.inter(context)
+                    text = app.label
+                    textSize = 12f
+                    gravity = Gravity.CENTER
+                    setTextColor(unfocusedTextColor)
+                    maxLines = 1
+                    ellipsize = android.text.TextUtils.TruncateAt.END
+                }
                 column.addView(
-                    TextView(context).apply {
-                        text = app.label
-                        textSize = 11.5f
-                        gravity = Gravity.CENTER
-                        setTextColor(palette.text)
-                        maxLines = 1
-                        ellipsize = android.text.TextUtils.TruncateAt.END
-                    },
+                    labelView,
                     TvUi.params(-1, -2, top = dp(9f)),
                 )
             }
@@ -228,7 +237,7 @@ internal class AppStripView(
                 card.addView(
                     favoriteDot(),
                     FrameLayout.LayoutParams(dp(20f), dp(20f), Gravity.TOP or Gravity.END).apply {
-                        topMargin = dp(5f)
+                        topMargin = dp(6f)
                         marginEnd = dp(6f)
                     },
                 )
@@ -239,22 +248,27 @@ internal class AppStripView(
 
     private fun iconTile(app: LauncherApp, sizePx: Int): FrameLayout {
         val tile = FrameLayout(context).apply {
-            background = GradientDrawable().apply {
-                setColor(palette.surfaceRaised)
-                cornerRadius = dp(14f).toFloat()
-                setStroke(1, TvUi.blend(palette.outline, palette.surface, 0.4f))
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                intArrayOf(
+                    TvUi.blend(palette.surfaceRaised, palette.text, 0.05f),
+                    palette.surface,
+                ),
+            ).apply {
+                cornerRadius = dp(15f).toFloat()
+                setStroke(dp(1f), TvUi.blend(palette.outline, palette.surface, 0.35f))
             }
             clipToOutline = true
             outlineProvider = object : android.view.ViewOutlineProvider() {
                 override fun getOutline(view: View, outline: android.graphics.Outline) {
-                    outline.setRoundRect(0, 0, view.width, view.height, dp(14f).toFloat())
+                    outline.setRoundRect(0, 0, view.width, view.height, dp(15f).toFloat())
                 }
             }
         }
         tile.addView(
             ImageView(context).apply { setImageDrawable(app.icon) },
             FrameLayout.LayoutParams(-1, -1).apply {
-                val pad = (sizePx * 0.16f).toInt()
+                val pad = (sizePx * 0.15f).toInt()
                 setMargins(pad, pad, pad, pad)
             },
         )
@@ -264,10 +278,14 @@ internal class AppStripView(
     private fun favoriteDot() = TextView(context).apply {
         typeface = TvUi.icons(context)
         text = GLYPH_STAR.toString()
-        textSize = 12f
+        textSize = 11.5f
         gravity = Gravity.CENTER
         setTextColor(palette.onAccent)
-        background = GradientDrawable().apply { setColor(palette.accent); shape = GradientDrawable.OVAL }
+        background = GradientDrawable().apply {
+            setColor(palette.accent)
+            shape = GradientDrawable.OVAL
+            setStroke(dp(1.5f), palette.surface)
+        }
     }
 
     companion object {

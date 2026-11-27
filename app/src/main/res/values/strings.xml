@@ -50,6 +50,8 @@
     <string name="deep_ocean">Deep ocean</string>
     <string name="launch_failed">This app could not be opened.</string>
     <string name="search_hint">Search your apps</string>
+    <string name="clear_search">Clear search</string>
+    <string name="hero_continue_label">Continue</string>
     <string name="choose_wallpaper_image">Choose an image…</string>
     <string name="no_favorites">Hold OK on an app to pin it here.</string>
     <string name="remove_favorite">Remove from favorites</string>

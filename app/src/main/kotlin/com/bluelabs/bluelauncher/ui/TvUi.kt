@@ -23,30 +23,51 @@ internal object TvUi {
     fun dp(context: Context, value: Float): Int = (value * context.resources.displayMetrics.density + 0.5f).toInt()
 
     /** Gradient card surface; focus tints it toward the accent and brightens the stroke. */
-    fun cardBackground(palette: Palette, radiusDp: Float = 16f, focused: Boolean = false): GradientDrawable {
+    fun cardBackground(context: Context, palette: Palette, radiusDp: Float = 16f, focused: Boolean = false): GradientDrawable {
         return GradientDrawable().apply {
             orientation = GradientDrawable.Orientation.TL_BR
             colors = if (focused) {
-                intArrayOf(blend(palette.surfaceRaised, palette.accent, 0.22f), palette.surface)
+                intArrayOf(blend(palette.surfaceRaised, palette.accent, 0.24f), blend(palette.surface, palette.accent, 0.06f))
             } else {
                 intArrayOf(palette.surfaceRaised, palette.surface)
             }
-            cornerRadius = radiusDp
-            setStroke(if (focused) 2 else 1, if (focused) palette.accent else blend(palette.outline, palette.surface, 0.4f))
+            cornerRadius = dp(context, radiusDp).toFloat()
+            setStroke(
+                dp(context, if (focused) 2f else 1f),
+                if (focused) palette.accentBright else blend(palette.outline, palette.surface, 0.45f),
+            )
         }
     }
 
-    /** Focused pills fill with the accent for a strong TV-style spotlight. */
-    fun pillBackground(palette: Palette, radiusDp: Float = 24f, selected: Boolean = false): GradientDrawable {
+    /** Focused or selected pills fill with an accent gradient for a strong TV-style spotlight. */
+    fun pillBackground(context: Context, palette: Palette, radiusDp: Float = 24f, selected: Boolean = false): GradientDrawable {
         return GradientDrawable().apply {
-            cornerRadius = radiusDp
+            cornerRadius = dp(context, radiusDp).toFloat()
             if (selected) {
-                setColor(palette.accent)
-                setStroke(2, palette.glow)
+                orientation = GradientDrawable.Orientation.TL_BR
+                colors = intArrayOf(palette.accentBright, palette.accent)
+                setStroke(dp(context, 1.5f), palette.glow)
             } else {
-                setColor(palette.surface)
-                setStroke(1, palette.outline)
+                setColor(blend(palette.surfaceRaised, palette.surface, 0.45f))
+                setStroke(dp(context, 1f), blend(palette.outline, palette.surface, 0.25f))
             }
+        }
+    }
+
+    /** Dark elevated input pill that highlights its border on focus instead of flooding with accent. */
+    fun inputBackground(context: Context, palette: Palette, radiusDp: Float = 24f, focused: Boolean = false): GradientDrawable {
+        return GradientDrawable().apply {
+            orientation = GradientDrawable.Orientation.TL_BR
+            colors = if (focused) {
+                intArrayOf(blend(palette.surfaceRaised, palette.accent, 0.12f), palette.surface)
+            } else {
+                intArrayOf(palette.surfaceRaised, palette.surface)
+            }
+            cornerRadius = dp(context, radiusDp).toFloat()
+            setStroke(
+                dp(context, if (focused) 2f else 1f),
+                if (focused) palette.accentBright else palette.outline,
+            )
         }
     }
 
@@ -62,9 +83,9 @@ internal object TvUi {
             val palette = paletteProvider()
             val isSelected = selected?.invoke() == true
             view.background = if (pill) {
-                pillBackground(palette, radiusDp, selected = focused || isSelected)
+                pillBackground(view.context, palette, radiusDp, selected = focused || isSelected)
             } else {
-                cardBackground(palette, radiusDp, focused)
+                cardBackground(view.context, palette, radiusDp, focused)
             }
             if (view is TextView) {
                 view.setTextColor(
@@ -93,7 +114,7 @@ internal object TvUi {
                 // Overshoot on press-in for a springy TV feel; decelerate on release.
                 .scaleX(if (focused) (if (pill) 1.05f else 1.07f) else 1f)
                 .scaleY(if (focused) (if (pill) 1.05f else 1.07f) else 1f)
-                .translationZ(if (focused) dp(focusedView, 6f).toFloat() else 0f)
+                .translationZ(if (focused) dp(focusedView, 7f).toFloat() else 0f)
                 .setDuration(if (focused) 160L else 120L)
                 .setInterpolator(if (focused) focusInterpolator else interpolator)
                 .start()

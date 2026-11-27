@@ -38,9 +38,10 @@ internal object PanelDialog {
                 intArrayOf(palette.surfaceRaised, palette.surface),
             ).apply {
                 cornerRadius = dp(24f).toFloat()
-                setStroke(1, palette.outline)
+                setStroke(dp(1.5f), palette.outline)
             }
-            setPadding(dp(24f), dp(18f), dp(24f), dp(18f))
+            elevation = dp(16f).toFloat()
+            setPadding(dp(24f), dp(20f), dp(24f), dp(18f))
         }
 
         panel.addView(TextView(context).apply {
@@ -53,6 +54,7 @@ internal object PanelDialog {
         if (subtitle != null) {
             panel.addView(
                 TextView(context).apply {
+                    typeface = TvUi.inter(context)
                     text = subtitle
                     textSize = 12.5f
                     setTextColor(palette.muted)
@@ -62,8 +64,8 @@ internal object PanelDialog {
         }
 
         panel.addView(
-            View(context).apply { setBackgroundColor(palette.outline) },
-            TvUi.params(-1, dp(1f), top = dp(12f), bottom = dp(8f)),
+            View(context).apply { setBackgroundColor((palette.outline and 0x00FFFFFF) or (0x80 shl 24)) },
+            TvUi.params(-1, dp(1f), top = dp(12f), bottom = dp(10f)),
         )
 
         // Cap the scrollable body so long lists never push the Cancel button off-screen.
@@ -77,13 +79,20 @@ internal object PanelDialog {
         )
 
         val cancelButton = TextView(context).apply {
+            typeface = TvUi.interBold(context)
             text = context.getString(android.R.string.cancel)
-            textSize = 13f
+            textSize = 12.5f
             gravity = Gravity.CENTER
             setPadding(dp(22f), 0, dp(22f), 0)
             TvUi.setSelectableBackground(this, { palette }, 22f, pill = true)
         }
-        panel.addView(cancelButton, TvUi.params(-2, dp(40f), top = dp(10f)))
+        panel.addView(
+            cancelButton,
+            LinearLayout.LayoutParams(-2, dp(40f)).apply {
+                gravity = Gravity.END
+                topMargin = dp(10f)
+            },
+        )
 
         val dialog = Dialog(context)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -142,6 +151,7 @@ internal object PanelDialog {
     ): TextView {
         val dp = { v: Float -> TvUi.dp(context, v) }
         return TextView(context).apply {
+            typeface = if (selected) TvUi.interBold(context) else TvUi.inter(context)
             text = if (selected) "✓   $label" else "     $label"
             textSize = 13.5f
             gravity = Gravity.CENTER_VERTICAL

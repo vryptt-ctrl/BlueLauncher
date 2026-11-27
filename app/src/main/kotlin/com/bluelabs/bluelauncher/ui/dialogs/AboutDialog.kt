@@ -17,6 +17,7 @@ internal object AboutDialog {
     ): Dialog {
         val dp = { v: Float -> TvUi.dp(context, v) }
         val message = TextView(context).apply {
+            typeface = TvUi.inter(context)
             text = context.getString(R.string.about_message, diagnosticsProvider?.invoke().orEmpty())
             textSize = 13f
             setTextColor(palette.text)

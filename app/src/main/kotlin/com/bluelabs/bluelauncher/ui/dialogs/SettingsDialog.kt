@@ -183,7 +183,9 @@ internal object SettingsDialog {
         }
         var repaint: () -> Unit = {}
         fun paint() {
-            row.text = if (selected()) "✓   ${label()}" else "     ${label()}"
+            val isSelected = selected()
+            row.typeface = if (isSelected) TvUi.interBold(context) else TvUi.inter(context)
+            row.text = if (isSelected) "✓   ${label()}" else "     ${label()}"
             repaint()
         }
         repaint = TvUi.setSelectableBackground(row, { palette }, 13f, selected = selected)

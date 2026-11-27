@@ -126,7 +126,9 @@ class LauncherViews(
     private val recentScroll = horizontalScroll()
     private val recentRow = rowFrame().apply { addView(recentScroll, FrameLayout.LayoutParams(-1, -1)) }
 
+    private val brandDot = View(context)
     private val brand = TextView(context)
+    private val clockDivider = View(context)
     private val searchChip = TextView(context)
     private val settingsChip = TextView(context)
     private val clock = TextView(context)
@@ -241,32 +243,64 @@ class LauncherViews(
     }
 
     private fun applyTextColors() {
+        brandDot.background = brandDotDrawable()
         brand.setTextColor(palette.accentBright)
         clock.setTextColor(palette.text)
         date.setTextColor(palette.muted)
+        clockDivider.setBackgroundColor(palette.outline)
         toastLine.setTextColor(palette.text)
         toastLine.background = toastBackground()
         listOf(searchChip, settingsChip).forEach { chip ->
-            chip.background = TvUi.pillBackground(palette, 22f)
-            chip.setTextColor(palette.text)
+            chip.background = TvUi.pillBackground(context, palette, 22f, chip.hasFocus())
+            chip.setTextColor(if (chip.hasFocus()) palette.onAccent else palette.text)
         }
         listOf(appsHeading, favoritesTitle, recentTitle).forEach { it.setTextColor(palette.muted) }
     }
 
-    private fun scrimBackground() = GradientDrawable(
-        GradientDrawable.Orientation.TOP_BOTTOM,
-        intArrayOf(palette.wallpaperStart, palette.background, palette.backgroundDeep),
-    )
+    private fun brandDotDrawable() = GradientDrawable().apply {
+        setColor(palette.accentBright)
+        shape = GradientDrawable.OVAL
+        setStroke(dp(2), (palette.glow and 0x00FFFFFF) or (0x55 shl 24))
+    }
+
+    private fun scrimBackground(): LayerDrawable {
+        val base = GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(palette.wallpaperStart, palette.background, palette.backgroundDeep),
+        )
+        val ambientGlow = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf((palette.glow and 0x00FFFFFF) or (0x24 shl 24), 0x00000000),
+        )
+        return LayerDrawable(arrayOf(base, ambientGlow))
+    }
+
+    private fun wallpaperScrim(bitmapDrawable: BitmapDrawable): LayerDrawable {
+        val scrim = GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(0x55000000, 0x7A000000, (palette.backgroundDeep and 0x00FFFFFF) or (0xC4 shl 24)),
+        )
+        return LayerDrawable(arrayOf(bitmapDrawable, scrim))
+    }
+
+    private fun currentWallpaperBitmap(): android.graphics.Bitmap? {
+        val bg = root.background
+        if (bg is BitmapDrawable) return bg.bitmap
+        if (bg is LayerDrawable && bg.numberOfLayers > 0) {
+            return (bg.getDrawable(0) as? BitmapDrawable)?.bitmap
+        }
+        return null
+    }
 
     private fun toastBackground(): LayerDrawable {
         val card = GradientDrawable().apply {
             setColor(palette.surfaceRaised)
             cornerRadius = dp(16).toFloat()
-            setStroke(1, palette.outline)
+            setStroke(dp(1), palette.outline)
         }
         val rail = GradientDrawable().apply { setColor(palette.glow); cornerRadius = dp(2).toFloat() }
         return LayerDrawable(arrayOf(card, rail)).apply {
-            setLayerInset(1, 0, dp(12), dp(266), dp(12))
+            setLayerInset(1, dp(8), dp(12), dp(288), dp(12))
         }
     }
 
@@ -274,7 +308,7 @@ class LauncherViews(
         val path = preferences.wallpaperImage
         val generation = ++wallpaperGeneration
         if (path.isBlank()) {
-            val previous = (root.background as? BitmapDrawable)?.bitmap
+            val previous = currentWallpaperBitmap()
             root.background = scrimBackground()
             if (previous?.isRecycled == false) previous.recycle()
             return
@@ -288,8 +322,8 @@ class LauncherViews(
                     bitmap.recycle()
                     return@post
                 }
-                val previous = (root.background as? BitmapDrawable)?.bitmap
-                root.background = BitmapDrawable(context.resources, bitmap)
+                val previous = currentWallpaperBitmap()
+                root.background = wallpaperScrim(BitmapDrawable(context.resources, bitmap))
                 if (previous !== bitmap && previous?.isRecycled == false) previous.recycle()
             }
         }
@@ -299,7 +333,7 @@ class LauncherViews(
         stopHeroPulse()
         wallpaperGeneration++
         wallpaperExecutor.shutdownNow()
-        val bitmap = (root.background as? BitmapDrawable)?.bitmap
+        val bitmap = currentWallpaperBitmap()
         root.background = scrimBackground()
         if (bitmap?.isRecycled == false) bitmap.recycle()
     }
@@ -370,20 +404,28 @@ class LauncherViews(
             }
         }
 
-        val top = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
+        val top = LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            clipChildren = false
+            clipToPadding = false
+        }
+        brandDot.background = brandDotDrawable()
+        top.addView(brandDot, TvUi.params(dp(10), dp(10), right = dp(10)))
         brand.apply {
             typeface = TvUi.interBold(context)
             text = context.getString(R.string.brand)
-            textSize = 14f
-            letterSpacing = 0.26f
+            textSize = 14.5f
+            letterSpacing = 0.28f
             setTextColor(palette.accentBright)
         }
         top.addView(brand, TvUi.params(-2, dp(40)))
         top.addView(Space(context), LinearLayout.LayoutParams(0, 1, 1f))
-        top.addView(clockText(clock, 27f))
-        top.addView(clockText(date, 13f).apply { gravity = Gravity.END }, TvUi.params(-2, -2, left = dp(14)))
-        top.addView(configureActionChip(searchChip, context.getString(R.string.search_action)) { focusSearch() }, TvUi.params(-2, dp(42), left = dp(20)))
-        top.addView(configureActionChip(settingsChip, context.getString(R.string.settings_action)) { callbacks.openSettings() }, TvUi.params(-2, dp(42), left = dp(8)))
+        top.addView(clockText(clock, 26f).apply { fontFeatureSettings = "tnum" })
+        top.addView(clockText(date, 13f).apply { gravity = Gravity.END }, TvUi.params(-2, -2, left = dp(12)))
+        clockDivider.setBackgroundColor(palette.outline)
+        top.addView(clockDivider, TvUi.params(dp(1), dp(20), left = dp(16), right = dp(16)))
+        top.addView(configureActionChip(searchChip, context.getString(R.string.search_action)) { focusSearch() }, TvUi.params(-2, dp(40)))
+        top.addView(configureActionChip(settingsChip, context.getString(R.string.settings_action)) { callbacks.openSettings() }, TvUi.params(-2, dp(40), left = dp(8)))
         content.addView(top, TvUi.params(-1, dp(46), bottom = dp(14)))
 
         content.addView(heroView.view, TvUi.params(-1, dp(164), bottom = dp(18)))
@@ -419,9 +461,11 @@ class LauncherViews(
             scroll.setFadingEdgeLength(dp(HEADROOM_DP))
         }
         toastLine.apply {
-            textSize = 14f
+            typeface = TvUi.inter(context)
+            textSize = 13.5f
             gravity = Gravity.CENTER
             setTextColor(palette.text)
+            elevation = dp(8).toFloat()
             visibility = View.GONE
         }
         root.addView(
@@ -514,8 +558,8 @@ class LauncherViews(
 
         listOf(allAppsChip, favoritesChip, mediaChip, gamesChip).forEachIndexed { index, chip ->
             val selected = categoryIndex == index
-            chip.background = TvUi.pillBackground(palette, 21f, selected)
-            chip.setTextColor(if (selected) palette.onAccent else palette.text)
+            chip.background = TvUi.pillBackground(context, palette, 21f, selected || chip.hasFocus())
+            chip.setTextColor(if (selected || chip.hasFocus()) palette.onAccent else palette.text)
         }
 
         favoritesTitle.visibility = if (showFavorites) View.VISIBLE else View.GONE
