@@ -41,6 +41,9 @@
     <string name="app_cards_compact">Compact app cards</string>
     <string name="app_cards_comfortable">Comfortable app cards</string>
     <string name="app_cards_large">Large app cards</string>
+    <string name="size_compact">Compact</string>
+    <string name="size_comfortable">Comfortable</string>
+    <string name="size_large">Large</string>
     <string name="reset_layout">Reset home layout</string>
     <string name="about_diagnostics">About and diagnostics</string>
     <string name="about_title">BlueLauncher  %1$s</string>

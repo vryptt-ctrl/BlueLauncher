@@ -27,6 +27,7 @@ internal object PanelDialog {
         title: String,
         subtitle: String?,
         content: View,
+        maxWidthDp: Float = 560f,
         dismissAction: ((Dialog) -> Unit)? = null,
     ): Dialog {
         val dp = { v: Float -> TvUi.dp(content, v) }
@@ -100,7 +101,7 @@ internal object PanelDialog {
         dialog.window?.apply {
             setBackgroundDrawable(ColorDrawable(0x99000000.toInt()))
             setLayout(
-                (context.resources.displayMetrics.widthPixels * 0.56f).toInt().coerceAtMost(dp(560f)),
+                (context.resources.displayMetrics.widthPixels * 0.62f).toInt().coerceAtMost(dp(maxWidthDp)),
                 ViewGroup.LayoutParams.WRAP_CONTENT,
             )
             setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
