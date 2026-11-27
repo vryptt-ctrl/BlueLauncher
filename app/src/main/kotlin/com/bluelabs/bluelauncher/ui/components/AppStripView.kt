@@ -258,12 +258,6 @@ internal class AppStripView(
                 cornerRadius = dp(15f).toFloat()
                 setStroke(dp(1f), TvUi.blend(palette.outline, palette.surface, 0.35f))
             }
-            clipToOutline = true
-            outlineProvider = object : android.view.ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: android.graphics.Outline) {
-                    outline.setRoundRect(0, 0, view.width, view.height, dp(15f).toFloat())
-                }
-            }
         }
         tile.addView(
             ImageView(context).apply { setImageDrawable(app.icon) },

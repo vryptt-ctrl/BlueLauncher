@@ -456,10 +456,6 @@ class LauncherViews(
         )
         addOptionalRow(favoritesTitle, favoritesRow, favoritesScroll, favoritesStrip)
         addOptionalRow(recentTitle, recentRow, recentScroll, recentStrip)
-        listOf(appsScroll, favoritesScroll, recentScroll).forEach { scroll ->
-            scroll.isHorizontalFadingEdgeEnabled = true
-            scroll.setFadingEdgeLength(dp(HEADROOM_DP))
-        }
         toastLine.apply {
             typeface = TvUi.inter(context)
             textSize = 13.5f
@@ -614,7 +610,9 @@ class LauncherViews(
         clipToPadding = true
     }
 
-    private fun horizontalScroll() = HorizontalScrollView(context).apply {
+    private fun horizontalScroll() = object : HorizontalScrollView(context) {
+        override fun computeScrollDeltaToGetChildRectOnScreen(rect: android.graphics.Rect): Int = 0
+    }.apply {
         isHorizontalScrollBarEnabled = false
         clipChildren = true
         clipToPadding = true

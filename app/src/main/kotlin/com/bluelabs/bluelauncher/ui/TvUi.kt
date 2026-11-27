@@ -79,13 +79,33 @@ internal object TvUi {
         selected: (() -> Boolean)? = null,
         onFocus: ((Boolean) -> Unit)? = null,
     ): () -> Unit {
+        var cachedPalette: Palette? = null
+        var normalBg: GradientDrawable? = null
+        var activeBg: GradientDrawable? = null
+
+        // Disable dynamic RenderNode shadows on cards/pills so scale animations stay pure GPU matrix transforms.
+        view.outlineProvider = null
+
+        fun ensureDrawables(palette: Palette) {
+            if (cachedPalette === palette && normalBg != null && activeBg != null) return
+            cachedPalette = palette
+            if (pill) {
+                normalBg = pillBackground(view.context, palette, radiusDp, selected = false)
+                activeBg = pillBackground(view.context, palette, radiusDp, selected = true)
+            } else {
+                normalBg = cardBackground(view.context, palette, radiusDp, focused = false)
+                activeBg = cardBackground(view.context, palette, radiusDp, focused = true)
+            }
+        }
+
         fun update(focused: Boolean) {
             val palette = paletteProvider()
+            ensureDrawables(palette)
             val isSelected = selected?.invoke() == true
-            view.background = if (pill) {
-                pillBackground(view.context, palette, radiusDp, selected = focused || isSelected)
-            } else {
-                cardBackground(view.context, palette, radiusDp, focused)
+            val isActive = if (pill) (focused || isSelected) else focused
+            val targetBg = if (isActive) activeBg else normalBg
+            if (view.background !== targetBg) {
+                view.background = targetBg
             }
             if (view is TextView) {
                 view.setTextColor(
@@ -99,10 +119,6 @@ internal object TvUi {
                     },
                 )
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                view.outlineAmbientShadowColor = palette.backgroundDeep
-                view.outlineSpotShadowColor = palette.glow
-            }
         }
         view.isFocusable = true
         view.isClickable = true
@@ -114,8 +130,8 @@ internal object TvUi {
                 // Overshoot on press-in for a springy TV feel; decelerate on release.
                 .scaleX(if (focused) (if (pill) 1.05f else 1.07f) else 1f)
                 .scaleY(if (focused) (if (pill) 1.05f else 1.07f) else 1f)
-                .translationZ(if (focused) dp(focusedView, 7f).toFloat() else 0f)
-                .setDuration(if (focused) 160L else 120L)
+                .translationZ(if (focused) dp(focusedView, 2f).toFloat() else 0f)
+                .setDuration(if (focused) 150L else 110L)
                 .setInterpolator(if (focused) focusInterpolator else interpolator)
                 .start()
             onFocus?.invoke(focused)
