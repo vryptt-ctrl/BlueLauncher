@@ -4,6 +4,11 @@ All notable changes to BlueLauncher are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added
+- Modular UI architecture: extracted components (`AppStripView`, `HeroView`, `SearchBarView`) and dialogs (`SettingsDialog`, `AboutDialog`, `PanelDialog`) out of `LauncherViews` for better maintainability and extensibility.
+- `LauncherViewModel` and `LauncherFilterEngine` to separate presentation, state management, and filtering/ranking logic from `MainActivity`.
+- Unit test suite for `LauncherFilterEngine`.
+
 ### Changed
 - The website is now four pages (home, install, developers, 404) instead of ten. Feature groups and
   score tables moved into home-page sections, the build and architecture pages merged into

@@ -20,6 +20,7 @@ internal object TvUi {
     val interpolator = DecelerateInterpolator(1.7f)
 
     fun dp(view: View, value: Float): Int = (value * view.resources.displayMetrics.density + 0.5f).toInt()
+    fun dp(context: Context, value: Float): Int = (value * context.resources.displayMetrics.density + 0.5f).toInt()
 
     /** Gradient card surface; focus tints it toward the accent and brightens the stroke. */
     fun cardBackground(palette: Palette, radiusDp: Float = 16f, focused: Boolean = false): GradientDrawable {
