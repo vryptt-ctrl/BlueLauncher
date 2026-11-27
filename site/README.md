@@ -1,6 +1,6 @@
 # BlueLauncher website
 
-Static marketing and documentation site for BlueLauncher, built with [Astro](https://astro.build).
+Static site for BlueLauncher (home, install guide and developer notes), built with [Astro](https://astro.build).
 No UI framework, no client-side routing, no third-party requests at runtime.
 
 Published to GitHub Pages with the custom domain:
@@ -32,17 +32,22 @@ and the deploy job needs the `github-pages` environment that the workflow declar
 
 ```
 site/
-├─ astro.config.mjs       # site, base, trailingSlash, sitemap integration
-├─ public/                # copied verbatim: brand files, favicon, robots.txt, webmanifest
+├─ astro.config.mjs       # site, base, trailingSlash, redirects, sitemap integration
+├─ public/                # copied verbatim: icons, social image, favicon, robots.txt, webmanifest
 └─ src/
    ├─ assets/             # screenshots and self-hosted Inter (processed by astro:assets)
    ├─ components/         # Nav, Footer, Button, Gallery, CodeBlock, TVFrame, …
-   ├─ data/               # copy: features, install/build steps, changelog, palette, icons
+   ├─ data/               # copy: features, install/developer content, screenshots, icons
    ├─ layouts/Base.astro  # head metadata, skip link, nav, main, footer
    ├─ lib/                # site.ts (facts/links), url.ts (base-aware hrefs)
    ├─ pages/              # one file per route; 404.astro for the error page
    └─ styles/             # tokens.css (design tokens), base.css (reset + primitives)
 ```
+
+Four pages: `/`, `/install/`, `/developers/` and `404`. Feature detail lives in home-page sections
+(`/#features`, `/#screenshots`), so no separate feature, screenshot, build, changelog or licence page
+is generated. The routes those pages used to serve are listed in `redirects` in `astro.config.mjs`
+and emit a meta-refresh stub, so links that were already published keep resolving.
 
 ## Rules worth keeping
 
@@ -50,8 +55,10 @@ site/
   from the domain root; if a `base` is ever added to `astro.config.mjs`, `url()` applies it to
   every href and `public/` asset reference in one place. Never hardcode an absolute path like
   `/install/` in a template.
-- **Facts live in `src/data/` and `src/lib/site.ts`.** The version, SDK levels, NDK version, ABI
-  table and changelog entries are mirrored from `app/build.gradle.kts`, `CHANGELOG.md` and
+- **Do not delete a published route without a redirect.** Add the old path to `redirects` in
+  `astro.config.mjs`; a static host has no other way to keep an indexed URL alive.
+- **Facts live in `src/data/` and `src/lib/site.ts`.** The version, SDK levels, NDK version and ABI
+  table are mirrored from `app/build.gradle.kts`, `CHANGELOG.md` and
   `README.md`. Change those files first, then this copy.
 - **One theme.** Colors derive from `ui/Palette.kt` (Blue nocturne) and `brand/README.md`. There is
   deliberately no light mode or theme switcher.

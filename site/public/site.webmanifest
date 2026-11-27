@@ -1,7 +1,7 @@
 {
-  "name": "BlueLauncher — Android TV launcher",
+  "name": "BlueLauncher",
   "short_name": "BlueLauncher",
-  "description": "Offline, open-source Android TV home launcher with Rust-ranked search and pinned favorites.",
+  "description": "A lightweight, offline, open-source home launcher for Android TV.",
   "lang": "en",
   "dir": "ltr",
   "start_url": "/",

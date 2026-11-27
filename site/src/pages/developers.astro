@@ -1,0 +1,110 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
+import SectionHead from '@/components/SectionHead.astro';
+import SpecTable from '@/components/SpecTable.astro';
+import CodeBlock from '@/components/CodeBlock.astro';
+import Button from '@/components/Button.astro';
+import { BUILD_PREREQS, ARCH_LAYERS, ABI_TABLE } from '@/data/content';
+import { SITE } from '@/lib/site';
+
+const crumbs = [{ name: 'Developers', path: '/developers/' }];
+---
+
+<Base
+  title="Developers: build and architecture"
+  description="Build BlueLauncher from source and see how it is put together: Kotlin platform views for the UI and a small Rust library for search."
+  breadcrumb={crumbs}
+>
+  <div class="page-intro">
+    <p class="kicker">Developers</p>
+    <h1 class="display page-intro__title">Build and architecture</h1>
+    <p class="lede">
+      Kotlin handles the Android lifecycle and the D-pad UI. A small Rust library, called over JNI,
+      handles app search and ranking.
+    </p>
+    <Breadcrumbs items={crumbs} />
+    <div class="cluster page-intro__actions">
+      <Button href={SITE.repo} external icon="github">Source on GitHub</Button>
+      <Button href={SITE.contributing} external variant="secondary" icon="code">
+        Contributing
+      </Button>
+    </div>
+  </div>
+
+  <section class="section" aria-labelledby="build-title">
+    <SectionHead kicker="Build" title="Build from source" id="build-title" />
+    <SpecTable
+      head={['Tool', 'Version', 'Notes']}
+      rows={BUILD_PREREQS.map((item) => [item.label, { text: item.value, mono: true }, item.note])}
+    />
+    <div class="stack">
+      <CodeBlock
+        code="rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android"
+        label="shell"
+      />
+      <CodeBlock
+        code={`export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/${SITE.ndkVersion}"\n./gradlew assembleDebug testDebugUnitTest lintDebug`}
+        label="macOS / Linux"
+      />
+      <CodeBlock
+        code={`$env:ANDROID_NDK_HOME = "$env:ANDROID_HOME/ndk/${SITE.ndkVersion}"\n.\\gradlew.bat assembleDebug testDebugUnitTest lintDebug`}
+        label="Windows"
+      />
+      <CodeBlock
+        code="cargo test --manifest-path app/src/main/rust/Cargo.toml"
+        label="native tests"
+      />
+    </div>
+    <p class="muted note">
+      Output is <code>app/build/outputs/apk/debug/app-debug.apk</code> ({SITE.debugApkSize}, all
+      three ABIs). <code>assembleRelease</code> runs R8 and produces an unsigned APK; add your own signing
+      config before distributing.
+    </p>
+  </section>
+
+  <section class="section" aria-labelledby="arch-title">
+    <SectionHead
+      kicker="Architecture"
+      title="Four layers, no framework"
+      lede="One activity, platform Views built in code, and no background services."
+      id="arch-title"
+    />
+    <SpecTable
+      head={['Layer', 'Path', 'Responsibility']}
+      rows={ARCH_LAYERS.map((layer) => [layer.title, { text: layer.file, mono: true }, layer.body])}
+    />
+    <p class="muted note">
+      Across JNI only strings travel: apps go in as <code>package&#92;tlabel</code> lines and the ranked
+      package list comes back newline-separated. If the library cannot load, a Kotlin scorer takes over.
+    </p>
+  </section>
+
+  <section class="section" aria-labelledby="abi-title">
+    <SectionHead
+      kicker="Packaging"
+      title="ABIs"
+      lede="ARM64 and x86_64 are linked with 16 KB page alignment for Android 15+."
+      id="abi-title"
+    />
+    <SpecTable
+      head={['ABI', 'Rust target', 'Native pages']}
+      rows={ABI_TABLE.map((row) => [row.abi, { text: row.target, mono: true }, row.pages])}
+    />
+  </section>
+</Base>
+
+<style>
+  .stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--gap-sm);
+    margin-top: var(--gap-md);
+  }
+
+  .note {
+    margin-top: var(--gap-md);
+    max-width: 74ch;
+    font-size: var(--step-0);
+  }
+</style>

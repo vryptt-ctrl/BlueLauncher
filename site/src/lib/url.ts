@@ -19,7 +19,7 @@ function isAssetPath(path: string): boolean {
 /**
  * `url('install/#adb')` → `/install/#adb`
  * `url('/')` → `/`
- * `url('/brand/icon.svg')` → `/brand/icon.svg`
+ * `url('/favicon.svg')` → `/favicon.svg`
  */
 export function url(path = '/'): string {
   if (/^(https?:|mailto:|tel:)/.test(path)) return path;

@@ -4,6 +4,20 @@ All notable changes to BlueLauncher are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Changed
+- The website is now four pages (home, install, developers, 404) instead of ten. Feature groups and
+  score tables moved into home-page sections, the build and architecture pages merged into
+  `/developers/`, and the changelog and licence pages now link to the repository files.
+- `/features/`, `/screenshots/`, `/build/`, `/architecture/`, `/changelog/` and `/license/` redirect
+  to their new homes, so indexed URLs keep resolving.
+- The footer credits both licences again: code under GPL-3.0 and brand assets under CC BY 4.0.
+
+### Removed
+- `public/brand/` files the site never referenced (SVG marks, wordmarks, the Play Store icon); the
+  favicon, `icon-512.png` and the social preview remain.
+- Home-page copy that repeated README numbers in three places (chips, highlight cards, install
+  panel). The facts now appear once, in the stats strip and the install steps.
+
 ## [1.1.2] - 2026-11-26
 
 ### Fixed

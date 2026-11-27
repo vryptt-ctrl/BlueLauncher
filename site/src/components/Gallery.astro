@@ -229,7 +229,23 @@ import { SHOTS } from '@/data/shots';
     object-fit: cover;
   }
 
+  @media (min-width: 720px) {
+    .gallery__tabs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      overflow: visible;
+    }
+
+    .gallery__tab {
+      width: auto;
+    }
+  }
+
   .gallery__tab-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-inline: 0.1rem;
     font-size: var(--step--1);
     font-weight: 400;
     letter-spacing: -0.005em;

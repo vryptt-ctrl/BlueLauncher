@@ -6,54 +6,36 @@ import Gallery from '@/components/Gallery.astro';
 import TVFrame from '@/components/TVFrame.astro';
 import FeatureCard from '@/components/FeatureCard.astro';
 import SectionHead from '@/components/SectionHead.astro';
-import SpecTable from '@/components/SpecTable.astro';
+import StepList from '@/components/StepList.astro';
 import { SITE } from '@/lib/site';
 import { url } from '@/lib/url';
-import { HIGHLIGHTS } from '@/data/features';
+import { HIGHLIGHTS, FEATURES } from '@/data/features';
+import { INSTALL_STEPS } from '@/data/content';
 import { SHOTS } from '@/data/shots';
-import { ABI_TABLE } from '@/data/content';
 
 const hero = SHOTS[0];
-const chips = [
-  { icon: 'tv' as const, text: `Android ${SITE.minSdkShort}+` },
-  { icon: 'cpu' as const, text: 'Kotlin + Rust' },
-  { icon: 'offline' as const, text: 'No network permission' },
-  { icon: 'github' as const, text: 'GPL-3.0' },
-];
 
-/** Factual questions only — each answer is mirrored from README or CHANGELOG. */
+/** Each answer is mirrored from the README or the source. */
 const FAQ = [
   {
-    q: 'Does BlueLauncher need an internet connection?',
-    a: 'No. The manifest declares no network permission, so the launcher cannot go online: no ads, no analytics, no crash reporter.',
+    q: 'Does it need an internet connection?',
+    a: 'No. The app declares no network permission, so it cannot go online. There are no ads, analytics or crash reporters.',
   },
   {
-    q: 'How big is the APK?',
-    a: `The signed release APK is ${SITE.releaseApkSize} after R8 and resource shrinking; a local debug build is ${SITE.debugApkSize} because it ships all three ABIs unshrunk.`,
+    q: 'Which devices are supported?',
+    a: `Android TV and Google TV devices running Android ${SITE.minSdkName} (API ${SITE.minSdk}) or newer, on arm64-v8a, armeabi-v7a or x86_64.`,
   },
   {
-    q: 'Which Android versions are supported?',
-    a: `Android ${SITE.minSdkName} (API ${SITE.minSdk}) and newer, on arm64-v8a, armeabi-v7a and x86_64 devices.`,
+    q: 'Will it replace my current home screen?',
+    a: 'Only if you choose it. Pick BlueLauncher in the Home-app chooser, or set it with one adb command. Your previous launcher stays installed.',
   },
   {
-    q: 'Will it replace my current TV home screen?',
-    a: 'It can — after installing, pick BlueLauncher in the home-app chooser or set it with one adb command. The previous launcher stays installed and one press of the Android home gesture brings the chooser back.',
+    q: 'Is it on the Play Store?',
+    a: 'No. It is distributed as a signed APK on GitHub Releases and installed by sideloading.',
   },
   {
-    q: 'Does search send my app list anywhere?',
-    a: 'No. Search runs entirely on the device: the Rust core scores labels, pins and recents locally, with a Kotlin fallback on unsupported ABIs.',
-  },
-  {
-    q: 'Is BlueLauncher free and open source?',
-    a: `Yes. The Kotlin and Rust source is GPL-3.0 on GitHub, and every APK is built from it. There is no paid tier, no subscription and no telemetry.`,
-  },
-  {
-    q: 'Does it work on Google TV, Chromecast and Android TV boxes?',
-    a: 'Yes, on any device running Android 6.0 (API 23) or newer with an arm64-v8a, armeabi-v7a or x86_64 CPU — Google TV sticks, Chromecast with Google TV, Nvidia Shield, Mi Box and generic Android TV boxes included.',
-  },
-  {
-    q: 'Is BlueLauncher on the Play Store?',
-    a: 'No. It is distributed as a signed APK from GitHub Releases and is sideloaded over adb or a file manager.',
+    q: 'Is it free?',
+    a: 'Yes. It is open source under GPL-3.0, with no paid tier and no telemetry.',
   },
 ];
 
@@ -66,47 +48,32 @@ const faqSchema = {
     acceptedAnswer: { '@type': 'Answer', text: item.a },
   })),
 };
-
-const description =
-  'Free, open-source Android TV home launcher with Rust-ranked search and pinned favorites. Offline by design — no ads, no analytics, no network permission.';
 ---
 
 <Base
-  title="BlueLauncher — offline, open-source Android TV launcher"
-  description={description}
+  title="BlueLauncher — a lightweight, offline Android TV launcher"
+  description={SITE.description}
   bare
 >
-  <!-- ── Hero ─────────────────────────────────────────────────────────── -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero__copy">
       <p class="kicker">Android TV home launcher</p>
       <h1 class="display hero__title" id="hero-title">
-        BlueLauncher<br />
-        <span class="gradient-text">Android TV launcher</span>
+        A fast, <span class="gradient-text">offline</span> home screen for your TV
       </h1>
       <p class="hero__lede">
-        A small, native Android TV launcher for your television. Kotlin draws the interface and
-        handles the Android side; a Rust module ranks and searches your apps on the device. Nothing
-        phones home.
+        BlueLauncher is a small, open-source launcher built for the remote: favorites, search,
+        recents and themes, with no ads and nothing sent off your device.
       </p>
-
       <div class="hero__actions">
         <Button href={SITE.releases} size="lg" external icon="download">Download APK</Button>
-        <Button href={SITE.repo} variant="secondary" size="lg" external icon="github">
-          View source
+        <Button href={url('/install/')} variant="secondary" size="lg" icon="arrow">
+          How to install
         </Button>
       </div>
-
-      <ul class="chips" aria-label="Key facts">
-        {
-          chips.map((chip) => (
-            <li class="chip">
-              <Icon name={chip.icon} size={15} />
-              {chip.text}
-            </li>
-          ))
-        }
-      </ul>
+      <p class="hero__meta">
+        v{SITE.version} · Android {SITE.minSdkShort}+ · {SITE.releaseApkSize}
+      </p>
     </div>
 
     <div class="hero__media">
@@ -114,9 +81,8 @@ const description =
     </div>
   </section>
 
-  <!-- ── Highlights ───────────────────────────────────────────────────── -->
-  <section class="section" aria-labelledby="highlights-title">
-    <h2 class="visually-hidden" id="highlights-title">Highlights</h2>
+  <section class="section section--lead" aria-labelledby="highlights-title">
+    <h2 class="visually-hidden" id="highlights-title">At a glance</h2>
     <ul class="stats">
       {
         HIGHLIGHTS.map((item) => (
@@ -133,79 +99,42 @@ const description =
     </ul>
   </section>
 
-  <!-- ── Screenshots ──────────────────────────────────────────────────── -->
-  <section class="section" aria-labelledby="screens-title">
-    <SectionHead
-      kicker="Screenshots"
-      title="BlueLauncher on an Android TV screen"
-      lede="Captured at 1920×1080 on a TV-sized display."
-      id="screens-title"
-    />
-    <Gallery />
-    <p class="section__more">
-      <a href={url('/screenshots/')}>See every screen in detail <Icon name="arrow" size={16} /></a>
-    </p>
-  </section>
-
-  <!-- ── Feature preview ──────────────────────────────────────────────── -->
-  <section class="section" aria-labelledby="features-title">
+  <section class="section" id="features" aria-labelledby="features-title">
     <SectionHead
       kicker="Features"
-      title="Android TV launcher features"
-      lede="The parts of a launcher you actually use, without the rest."
+      title="Everything you use, nothing you don’t"
       id="features-title"
     />
     <div class="grid grid--3">
       {
-        HIGHLIGHTS.map((item) => (
+        FEATURES.map((item) => (
           <FeatureCard icon={item.icon as any} title={item.title} body={item.body} />
         ))
       }
-      <FeatureCard
-        icon="palette"
-        title="Three dark themes"
-        body="Blue nocturne, Midnight ink and Deep ocean, plus a custom wallpaper imported straight from the system picker."
-      />
-      <FeatureCard
-        icon="pin"
-        title="Ordered favorites"
-        body="Hold OK to pin an app and nudge it into place. Your order survives reinstalls and uninstalls."
-      />
-      <FeatureCard
-        icon="shield"
-        title="No network permission"
-        body="The manifest declares no network permission, so there is nothing to phone home with. No ads, no analytics, no crash reporter."
-      />
     </div>
   </section>
 
-  <!-- ── Install teaser ───────────────────────────────────────────────── -->
-  <section class="section install" aria-labelledby="install-title">
-    <div class="install__panel">
-      <div class="install__copy">
-        <p class="kicker">Get it running</p>
-        <h2 class="h2" id="install-title">Install BlueLauncher on Android TV</h2>
-        <p class="muted install__text">
-          Every release is R8-shrunk, zipaligned and signed by the maintainer before it goes up on
-          GitHub. Building from source works too if you would rather sign it yourself.
-        </p>
-        <div class="cluster">
-          <Button href={url('/install/')} icon="download">Installation guide</Button>
-          <Button href={url('/build/')} variant="secondary" icon="build">Build from source</Button>
-        </div>
-      </div>
-
-      <div class="install__specs">
-        <SpecTable
-          head={['ABI', 'Rust target', 'Page size']}
-          rows={ABI_TABLE.map((row) => [row.abi, { text: row.target, mono: true }, row.pages])}
-        />
-      </div>
-    </div>
+  <section class="section" id="screenshots" aria-labelledby="screens-title">
+    <SectionHead kicker="Screenshots" title="See it in action" id="screens-title" />
+    <Gallery />
   </section>
 
-  <!-- ── FAQ ─────────────────────────────────────────────────────────── -->
-  <section class="section" aria-labelledby="faq-title">
+  <section class="section" aria-labelledby="install-title">
+    <SectionHead
+      kicker="Install"
+      title="Up and running in three steps"
+      lede="No store listing and no companion app."
+      id="install-title"
+    />
+    <StepList steps={INSTALL_STEPS} label="Install" />
+    <p class="section__more">
+      <a href={url('/install/')}
+        >Full guide, adb and troubleshooting <Icon name="arrow" size={16} /></a
+      >
+    </p>
+  </section>
+
+  <section class="section split" aria-labelledby="faq-title">
     <SectionHead kicker="FAQ" title="Common questions" id="faq-title" />
     <div class="faq">
       {
@@ -228,7 +157,7 @@ const description =
     display: grid;
     gap: var(--gap-xl);
     align-items: center;
-    padding-block: clamp(2.5rem, 1rem + 6vw, 5.5rem) var(--gap-2xl);
+    padding-block: clamp(2rem, 1rem + 4vw, 4.5rem) clamp(2.5rem, 1.5rem + 4vw, 4.5rem);
   }
 
   @media (min-width: 1000px) {
@@ -240,11 +169,13 @@ const description =
 
   .hero__title {
     margin-top: var(--gap);
+    font-size: var(--step-5);
+    max-width: 14ch;
   }
 
   .hero__lede {
     margin-top: var(--gap-md);
-    max-width: 52ch;
+    max-width: 46ch;
     font-size: var(--step-2);
     font-weight: 300;
     line-height: 1.55;
@@ -258,30 +189,32 @@ const description =
     margin-top: var(--gap-lg);
   }
 
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    list-style: none;
-    padding: 0;
-    margin: var(--gap-md) 0 0;
+  /* The gallery below repeats this caption, so phones skip it here. */
+  @media (max-width: 699px) {
+    .hero__media :global(.tv__caption) {
+      display: none;
+    }
   }
 
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.38rem 0.75rem;
-    border-radius: var(--r-pill);
-    border: 1px solid var(--border);
-    background: rgb(17 26 42 / 65%);
+  @media (max-width: 520px) {
+    .hero__actions :global(.btn) {
+      flex: 1 1 100%;
+    }
+  }
+
+  /* The home screenshot leaves its lower third empty; crop it in the hero only. */
+  .hero__media :global(.tv__screen) {
+    aspect-ratio: 16 / 10;
+  }
+
+  .hero__media :global(.tv__image) {
+    object-position: top;
+  }
+
+  .hero__meta {
+    margin-top: var(--gap-md);
     font-size: var(--step--1);
     color: var(--text-dim);
-    white-space: nowrap;
-  }
-
-  .chip :global(svg) {
-    color: var(--cyan);
   }
 
   .hero__media {
@@ -313,9 +246,24 @@ const description =
     overflow: hidden;
   }
 
-  @media (min-width: 720px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 900px) {
     .stats {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* Phones: keep the strip compact, the label says enough. */
+  @media (max-width: 899px) {
+    .stat__body {
+      display: none;
+    }
+
+    .stat {
+      padding: var(--gap);
     }
   }
 
@@ -381,6 +329,26 @@ const description =
     }
   }
 
+  /* Heading left, answers right on wide screens. */
+  @media (min-width: 900px) {
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+      gap: var(--gap-xl);
+      align-items: start;
+    }
+
+    .split :global(.head) {
+      position: sticky;
+      top: calc(var(--nav-h) + var(--gap-md));
+      margin-bottom: 0;
+    }
+
+    .split :global(.faq) {
+      max-width: none;
+    }
+  }
+
   .section__more {
     margin-top: var(--gap-md);
     font-size: var(--step-0);
@@ -396,73 +364,5 @@ const description =
 
   .section__more a:hover {
     gap: 0.6rem;
-  }
-
-  /* ── Install panel ─────────────────────────────────────────────────── */
-  .install__panel {
-    display: grid;
-    /* Single column, but an explicit minmax(0, 1fr) track so the embedded spec
-       table can scroll instead of widening the panel on narrow screens. */
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--gap-lg);
-    padding: clamp(1.5rem, 3vw, 2.75rem);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-xl);
-    background:
-      radial-gradient(120% 130% at 0% 0%, rgb(47 125 255 / 14%), transparent 60%),
-      linear-gradient(180deg, rgb(28 39 63 / 60%), rgb(11 17 29 / 92%));
-    box-shadow: var(--shadow-card);
-  }
-
-  @media (min-width: 900px) {
-    .install__panel {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      align-items: center;
-      gap: var(--gap-xl);
-    }
-  }
-
-  .install__text {
-    margin-block: var(--gap) var(--gap-md);
-    max-width: 46ch;
-    font-size: var(--step-0);
-  }
-
-  /* ── FAQ ───────────────────────────────────────────────────────────── */
-  .faq {
-    display: grid;
-    gap: var(--gap-sm);
-    max-width: 76ch;
-  }
-
-  .faq__item {
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    background: rgb(17 26 42 / 55%);
-    padding: 0.9rem 1.1rem;
-    transition: border-color var(--dur) var(--ease);
-  }
-
-  .faq__item[open] {
-    border-color: var(--border-accent);
-    background: rgb(28 39 63 / 55%);
-  }
-
-  .faq__item summary {
-    cursor: pointer;
-    font-weight: 700;
-    font-size: var(--step-1);
-    letter-spacing: -0.01em;
-    list-style-position: outside;
-  }
-
-  .faq__item summary::marker {
-    color: var(--cyan);
-  }
-
-  .faq__item p {
-    margin-top: var(--gap-sm);
-    color: var(--text-dim);
-    font-size: var(--step-0);
   }
 </style>

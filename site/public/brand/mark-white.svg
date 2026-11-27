@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="15 11 74 74" width="512" height="512">
-  <title>BlueLauncher mark, single color white</title>
-  <rect x="21" y="21" width="26" height="26" rx="7" fill="#FFFFFF" fill-opacity="0.45"/>
-  <rect x="21" y="53" width="26" height="26" rx="7" fill="#FFFFFF" fill-opacity="0.45"/>
-  <rect x="53" y="53" width="26" height="26" rx="7" fill="#FFFFFF" fill-opacity="0.45"/>
-  <rect x="53" y="21" width="26" height="26" rx="7" fill="#FFFFFF"/>
-  <rect x="50" y="18" width="32" height="32" rx="9.5" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
-</svg>

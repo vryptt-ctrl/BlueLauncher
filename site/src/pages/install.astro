@@ -2,27 +2,19 @@
 import Base from '@/layouts/Base.astro';
 import Breadcrumbs from '@/components/Breadcrumbs.astro';
 import StepList from '@/components/StepList.astro';
-import CodeBlock from '@/components/CodeBlock.astro';
 import SectionHead from '@/components/SectionHead.astro';
 import Button from '@/components/Button.astro';
 import Icon from '@/components/Icon.astro';
-import { INSTALL_STEPS, INSTALL_TROUBLESHOOTING } from '@/data/content';
+import { INSTALL_STEPS, ADB_STEPS, INSTALL_TROUBLESHOOTING } from '@/data/content';
 import { SITE } from '@/lib/site';
 import { url } from '@/lib/url';
 
 const crumbs = [{ name: 'Install', path: '/install/' }];
-const keywords = [
-  'install Android TV launcher',
-  'sideload APK Android TV',
-  'adb install Android TV',
-  'set default home app Android TV',
-  'BlueLauncher APK download',
-];
 
 const requirements = [
-  `Android TV or a phone/tablet running Android ${SITE.minSdkName} (API ${SITE.minSdk}) or newer`,
-  'An ABI covered by the build: arm64-v8a, armeabi-v7a or x86_64',
-  'adb access over the network or USB, for the CLI route',
+  `Android TV or Google TV on Android ${SITE.minSdkName} (API ${SITE.minSdk}) or newer`,
+  'An arm64-v8a, armeabi-v7a or x86_64 device',
+  'A way to move the APK to the TV: USB drive, file-transfer app, or the TV’s own browser',
 ];
 
 const faqSchema = {
@@ -38,31 +30,24 @@ const faqSchema = {
 
 <Base
   title="Install on Android TV"
-  description="Download the signed BlueLauncher APK and install it on Android TV or Google TV over adb or a file manager, then set it as the default home app. Android 6.0+."
-  keywords={keywords}
+  description="Download the signed BlueLauncher APK, install it on Android TV or Google TV from a USB drive or over adb, and set it as your home screen."
   breadcrumb={crumbs}
 >
   <div class="page-intro">
     <p class="kicker">Install</p>
     <h1 class="display page-intro__title">Install on Android TV</h1>
     <p class="lede">
-      BlueLauncher ships as a normal APK, signed and ready to sideload on any Android TV or Google TV
-      device. There is no store listing and no companion app.
+      BlueLauncher is a normal APK, signed by the maintainer. There is no store listing and no
+      companion app.
     </p>
     <Breadcrumbs items={crumbs} />
     <div class="cluster page-intro__actions">
-      <Button href={SITE.releases} external icon="download">Open latest release</Button>
-      <Button href={url('/build/')} variant="secondary" icon="build">Build it yourself</Button>
+      <Button href={SITE.releases} external icon="download">Download latest APK</Button>
     </div>
   </div>
 
-  <section class="section" aria-labelledby="steps-title">
-    <SectionHead kicker="Steps" title="Three steps" id="steps-title" />
-    <StepList steps={INSTALL_STEPS} label="Install" />
-  </section>
-
-  <section class="section" aria-labelledby="before-title">
-    <SectionHead kicker="Before you start" title="Requirements" id="before-title" />
+  <section class="section" aria-labelledby="req-title">
+    <SectionHead kicker="Before you start" title="Requirements" id="req-title" />
     <ul class="checklist">
       {
         requirements.map((item) => (
@@ -75,17 +60,19 @@ const faqSchema = {
     </ul>
   </section>
 
+  <section class="section" aria-labelledby="steps-title">
+    <SectionHead kicker="Steps" title="Install in three steps" id="steps-title" />
+    <StepList steps={INSTALL_STEPS} label="Install" />
+  </section>
+
   <section class="section" aria-labelledby="adb-title">
     <SectionHead
-      kicker="Connecting over the network"
-      title="Connecting adb over Wi-Fi"
+      kicker="Alternative"
+      title="Install with adb"
+      lede="For developers, or if the TV has no usable file manager."
       id="adb-title"
     />
-    <p class="muted section__text">
-      Enable ADB debugging in the TV's developer options, then pair by IP. Android 11+ TVs ask for a
-      one-time code.
-    </p>
-    <CodeBlock code={'adb connect 192.168.1.50:5555\nadb devices'} label="shell" />
+    <StepList steps={ADB_STEPS} label="adb" />
   </section>
 
   <section class="section" aria-labelledby="trouble-title">
@@ -104,112 +91,12 @@ const faqSchema = {
 
   <section class="section">
     <div class="notice">
-      <h2 class="h3">Signed release builds</h2>
+      <h2 class="h3">Prefer to build it yourself?</h2>
       <p class="muted">
-        BlueLauncher is not on a store. Each release APK is R8-shrunk, zipaligned and signed by the
-        maintainer; the signing key itself is not in the repository. Building from source with
-        <code>assembleRelease</code> gives you an unsigned APK that you sign with your own keystore.
+        The source is on GitHub. See the <a href={url('/developers/')}>developer guide</a> for build steps.
       </p>
     </div>
   </section>
 
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head-extras" />
 </Base>
-
-<style>
-  .page-intro {
-    padding-block: clamp(2.5rem, 1.5rem + 4vw, 4.5rem) var(--gap-xl);
-    max-width: 64ch;
-  }
-
-  .page-intro__title {
-    margin-top: var(--gap);
-    font-size: clamp(2rem, 1.3rem + 3vw, 3.25rem);
-  }
-
-  .page-intro :global(.lede) {
-    margin-top: var(--gap-md);
-  }
-
-  .page-intro__actions {
-    margin-top: var(--gap-lg);
-  }
-
-  .checklist {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: var(--gap-sm);
-    max-width: 70ch;
-  }
-
-  .checklist li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    font-size: var(--step-0);
-    color: var(--text-muted);
-  }
-
-  .checklist :global(svg) {
-    margin-top: 0.2em;
-    color: var(--cyan);
-  }
-
-  .section__text {
-    max-width: 64ch;
-    margin-bottom: var(--gap);
-    font-size: var(--step-0);
-  }
-
-  .faq {
-    display: grid;
-    gap: var(--gap-sm);
-    max-width: 76ch;
-  }
-
-  .faq__item {
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    background: rgb(17 26 42 / 55%);
-    padding: 0.9rem 1.1rem;
-    transition: border-color var(--dur) var(--ease);
-  }
-
-  .faq__item[open] {
-    border-color: var(--border-accent);
-    background: rgb(28 39 63 / 55%);
-  }
-
-  .faq__item summary {
-    cursor: pointer;
-    font-weight: 700;
-    font-size: var(--step-1);
-    letter-spacing: -0.01em;
-    list-style-position: outside;
-  }
-
-  .faq__item summary::marker {
-    color: var(--cyan);
-  }
-
-  .faq__item p {
-    margin-top: var(--gap-sm);
-    color: var(--text-dim);
-    font-size: var(--step-0);
-  }
-
-  .notice {
-    max-width: 62ch;
-    padding: var(--gap-md);
-    border-left: 2px solid var(--border-accent);
-    background: rgb(47 125 255 / 6%);
-    border-radius: 0 var(--r-md) var(--r-md) 0;
-  }
-
-  .notice p {
-    margin-top: var(--gap-sm);
-    font-size: var(--step-0);
-  }
-</style>

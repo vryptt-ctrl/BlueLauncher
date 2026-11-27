@@ -11,19 +11,30 @@ export type Step = {
 
 export const INSTALL_STEPS: Step[] = [
   {
-    title: 'Get the APK',
-    body: `Download the latest release build from GitHub — ${SITE.releaseApkSize}, R8-shrunk and signed by the maintainer. Install it over adb or sideload it from a file manager, whichever your TV allows.`,
-    note: 'Android 6.0 (API 23) and newer. ARM64, ARMv7 and x86_64 are packaged.',
+    title: 'Download the APK',
+    body: `Get the latest release from GitHub (${SITE.releaseApkSize}). Releases are signed by the maintainer. You can download it on the TV itself, or on a phone or PC.`,
+    note: 'Requires Android 6.0 (API 23) or newer.',
   },
   {
-    title: 'Install over adb',
-    body: 'Connect to the TV over the network or USB, then install the downloaded APK.',
-    code: `adb install -r ${SITE.releaseApk}`,
-    lang: 'shell',
+    title: 'Install it on the TV',
+    body: 'Copy the APK to the TV with a USB drive or a file-transfer app, open it in a file manager and install. If the TV blocks the install, allow installs from unknown sources for that file manager when asked.',
   },
   {
     title: 'Make it the home screen',
-    body: 'Set BlueLauncher as the default home activity, or pick it from the TV home-app chooser the next time Android asks.',
+    body: 'Press the Home button and choose BlueLauncher in the Home-app chooser. Pick “Always” if your TV offers it, so it stays the default.',
+  },
+];
+
+export const ADB_STEPS: Step[] = [
+  {
+    title: 'Install over adb',
+    body: 'Enable ADB debugging in the TV\u2019s developer options, connect, then install the downloaded APK.',
+    code: `adb connect <tv-ip>:5555\nadb install -r ${SITE.releaseApk}`,
+    lang: 'shell',
+  },
+  {
+    title: 'Set it as the default home app',
+    body: 'Use this if your TV does not show the Home-app chooser.',
     code: 'adb shell cmd package set-home-activity com.bluelabs.bluelauncher/.MainActivity',
     lang: 'shell',
   },
@@ -31,22 +42,18 @@ export const INSTALL_STEPS: Step[] = [
 
 export const INSTALL_TROUBLESHOOTING = [
   {
-    title: 'The installer rejects the APK',
-    body: 'Check that the file downloaded completely and that you are on Android 6.0 (API 23) or newer. If your device blocks sideloaded packages, allow installs from unknown sources for the file manager or adb session you are using.',
+    title: 'The TV blocks the install',
+    body: 'Allow installs from unknown sources for the file manager you are using. The setting is usually under Settings > Device Preferences > Security & restrictions, though the path varies by device.',
   },
   {
-    title: 'The TV does not list BlueLauncher as a home app',
-    body: 'BlueLauncher registers both HOME and LEANBACK_LAUNCHER. Some vendor launchers cache the home chooser — clear that app’s data or use the adb command above.',
+    title: 'BlueLauncher is not offered as a home app',
+    body: 'Some vendor launchers cache the home chooser. Clear that launcher\u2019s data, or use the adb command above.',
   },
   {
-    title: 'No apps appear in the grid',
-    body: 'On Android 11+ only apps declared through launcher intent queries are visible by design. Apps without a TV or launcher icon will not show up.',
+    title: 'Some apps are missing from the grid',
+    body: 'Only apps that declare a TV or launcher icon are listed. An app with neither will not appear.',
   },
-  {
-    title: 'Native search reports “Kotlin fallback”',
-    body: 'The packaged ABIs are arm64-v8a, armeabi-v7a and x86_64. Other ABIs fall back to the Kotlin scorer, which ranks identically but slower.',
-  },
-];
+] as const;
 
 export const BUILD_PREREQS = [
   { label: 'JDK', value: '17', note: 'Android Studio’s bundled JDK works.' },
@@ -64,21 +71,6 @@ export const BUILD_PREREQS = [
     label: 'Rust',
     value: '3 Android targets',
     note: 'aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android.',
-  },
-] as const;
-
-export const GRADLE_COMMANDS = [
-  {
-    command: '.\\gradlew.bat assembleDebug',
-    note: `Windows — debug APK with all three ABIs (${SITE.debugApkSize}).`,
-  },
-  {
-    command: './gradlew assembleDebug testDebugUnitTest lintDebug',
-    note: 'macOS / Linux — build, unit tests and lint.',
-  },
-  {
-    command: 'cargo test --manifest-path app/src/main/rust/Cargo.toml',
-    note: 'Native scorer tests on the host.',
   },
 ] as const;
 
@@ -112,34 +104,5 @@ export const ARCH_LAYERS = [
     title: 'Native',
     file: 'nativeengine/NativeEngine.kt + rust/src/lib.rs',
     body: 'JNI entry points for ranking and scoring. ProGuard rules keep the native bridges alive through R8.',
-  },
-] as const;
-
-export const SCORE_TABLE = [
-  { match: 'Exact label match', score: '1000' },
-  { match: 'Label prefix', score: '800 − length penalty (max 100)' },
-  { match: 'Word prefix', score: '650' },
-  { match: 'Substring', score: '500' },
-  { match: 'Ordered subsequence', score: '220 − gaps (max 100)' },
-  { match: 'Pinned favorite bonus', score: '+100 − row position' },
-  { match: 'Recent bonus', score: '+50 − row position' },
-] as const;
-
-export const DEPENDENCIES = [
-  {
-    title: 'One AndroidX artifact',
-    body: 'androidx.activity only, for lifecycle-safe document-picker results and predictive-back handling. Settings and menus are custom in-theme Dialog panels built from platform Views.',
-  },
-  {
-    title: 'One Rust crate',
-    body: 'jni 0.21 with default features off, compiled with opt-level "s", LTO, one codegen unit and symbols stripped.',
-  },
-  {
-    title: 'No UI framework',
-    body: 'No Compose runtime, RecyclerView or Leanback. Every home view is constructed in Kotlin against the platform.',
-  },
-  {
-    title: 'No network stack',
-    body: 'No HTTP client, no analytics SDK, no crash reporter. The manifest declares no network permission at all.',
   },
 ] as const;

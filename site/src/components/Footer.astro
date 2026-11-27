@@ -14,7 +14,7 @@ const year = new Date().getFullYear();
         <Brand link={true} size={38} />
         <p class="footer__tagline">{SITE.tagline}</p>
         <p class="footer__meta">
-          Native Android TV home launcher · v{SITE.version}
+          Android TV home launcher · v{SITE.version}
         </p>
         <a class="footer__repo" href={SITE.repo} target="_blank" rel="noopener noreferrer">
           <Icon name="github" size={18} />
@@ -47,10 +47,11 @@ const year = new Date().getFullYear();
     </div>
 
     <div class="footer__base">
-      <p>© {year} BlueLauncher contributors. Code under GPL-3.0, brand assets under CC BY 4.0.</p>
-      <p class="footer__offline">
-        <Icon name="offline" size={15} />
-        This site loads no third-party scripts, fonts or analytics.
+      <p>
+        © {year} BlueLauncher contributors. Code under{' '}
+        <a href={SITE.licenseCode} target="_blank" rel="noopener noreferrer">GPL-3.0</a>, brand
+        assets under{' '}
+        <a href={SITE.licenseAssets} target="_blank" rel="noopener noreferrer">CC BY 4.0</a>.
       </p>
     </div>
   </div>
@@ -60,7 +61,7 @@ const year = new Date().getFullYear();
   .footer {
     position: relative;
     z-index: 1;
-    margin-top: var(--gap-2xl);
+    margin-top: var(--gap-xl);
     border-top: 1px solid var(--border);
     background: linear-gradient(180deg, rgb(17 26 42 / 40%), var(--bg-deep));
     padding-block: var(--gap-xl) var(--gap-lg);
@@ -80,7 +81,7 @@ const year = new Date().getFullYear();
 
   @media (min-width: 1000px) {
     .footer__grid {
-      grid-template-columns: 1.7fr repeat(4, 1fr);
+      grid-template-columns: 1.7fr repeat(2, 1fr);
       gap: var(--gap-md);
     }
   }
@@ -160,11 +161,5 @@ const year = new Date().getFullYear();
     border-top: 1px solid var(--border);
     color: var(--text-faint);
     font-size: var(--step--1);
-  }
-
-  .footer__offline {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
   }
 </style>

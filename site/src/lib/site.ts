@@ -6,9 +6,9 @@
 
 export const SITE = {
   name: 'BlueLauncher',
-  tagline: 'A small, offline home screen for Android TV.',
+  tagline: 'A lightweight, offline home screen for Android TV.',
   description:
-    'Free, open-source Android TV home launcher. Kotlin UI, Rust-ranked app search, fully offline — no ads, no analytics, no network permission.',
+    'A lightweight, open-source home launcher for Android TV. Fast D-pad navigation, favorites, search and themes — fully offline, with no ads and no analytics.',
   version: '1.1.2',
   versionDate: '2026-11-26',
   releaseDate: '2026-11-26',
@@ -44,15 +44,9 @@ export const SITE = {
   keywords: [
     'Android TV launcher',
     'Android TV home screen',
-    'Android TV box launcher',
-    'open source Android launcher',
+    'open source launcher',
     'lightweight launcher',
-    'offline launcher',
     'no ads launcher',
-    'Kotlin launcher',
-    'Rust JNI',
-    'Leanback launcher',
-    'launcher APK',
     'sideload APK',
   ],
 } as const;
@@ -60,45 +54,28 @@ export const SITE = {
 export type NavItem = { label: string; href: string };
 
 export const NAV: NavItem[] = [
-  { label: 'Features', href: '/features/' },
-  { label: 'Screenshots', href: '/screenshots/' },
+  { label: 'Features', href: '/#features' },
   { label: 'Install', href: '/install/' },
-  { label: 'Build', href: '/build/' },
-  { label: 'Changelog', href: '/changelog/' },
+  { label: 'Developers', href: '/developers/' },
 ];
 
 export const FOOTER_LINKS: { title: string; links: NavItem[] }[] = [
   {
-    title: 'Product',
-    links: [
-      { label: 'Features', href: '/features/' },
-      { label: 'Screenshots', href: '/screenshots/' },
-      { label: 'Install on a TV', href: '/install/' },
-      { label: 'Changelog', href: '/changelog/' },
-    ],
-  },
-  {
-    title: 'Developers',
-    links: [
-      { label: 'Build from source', href: '/build/' },
-      { label: 'Architecture', href: '/architecture/' },
-      { label: 'Contributing', href: SITE.contributing },
-      { label: 'Report a bug', href: SITE.issueTemplates },
-    ],
-  },
-  {
     title: 'Project',
     links: [
-      { label: 'GitHub repository', href: SITE.repo },
+      { label: 'Install', href: '/install/' },
+      { label: 'Developers', href: '/developers/' },
+      { label: 'Changelog', href: SITE.changelog },
       { label: 'Releases', href: SITE.allReleases },
-      { label: 'Security policy', href: SITE.security },
+      { label: 'GitHub', href: SITE.repo },
     ],
   },
   {
-    title: 'Legal',
+    title: 'Support',
     links: [
-      { label: 'Licenses', href: '/license/' },
-      { label: 'Code: GPL-3.0', href: SITE.licenseCode },
+      { label: 'Report a bug', href: SITE.issueTemplates },
+      { label: 'Security policy', href: SITE.security },
+      { label: 'License: GPL-3.0', href: SITE.licenseCode },
     ],
   },
 ];
